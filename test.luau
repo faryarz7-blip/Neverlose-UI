@@ -90,6 +90,7 @@ local LOAD_ENV = LPH_NO_VIRTUALIZE(function()
 				end;
 			end;
 		end;
+        
 
 		getgenv().listfiles = function(path)
 			local fold = __get_path(path);
@@ -137,6 +138,19 @@ local LOAD_ENV = LPH_NO_VIRTUALIZE(function()
 		end;
 	end;
 end)
+
+if getgenv().NeverLoseGui then
+    pcall(function()
+        getgenv().NeverLoseGui:Destroy()
+    end)
+    getgenv().NeverLoseGui = nil
+end
+
+local GlobalWindow = Instance.new("ScreenGui")
+GlobalWindow.Name = "NeverLoseUI"
+GlobalWindow.Parent = CoreGui
+
+getgenv().NeverLoseGui = GlobalWindow
 
 LOAD_ENV();
 
@@ -6308,6 +6322,7 @@ function NeverLose:CreateNotification()
 
 	return Notifier;
 end;
+
 
 function NeverLose:CreateLogger()
 	if NeverLose.__LogSystem then
