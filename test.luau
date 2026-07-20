@@ -147,6 +147,7 @@ if getgenv().NeverLoseGui then
 end
 
 local GlobalWindow = Instance.new("ScreenGui")
+getgenv().NeverLoseGui = GlobalWindow
 GlobalWindow.Name = "NeverLoseUI"
 GlobalWindow.Parent = CoreGui
 
