@@ -61,7 +61,7 @@ NeverLose.CreateInput = LPH_NO_VIRTUALIZE(function(self , Frame , Callback)
 	Button.Size = UDim2.fromScale(1,1);
 	Button.BackgroundTransparency = 1;
 	Button.ImageTransparency = 1;
-	Button.Image = "rbxasset://textuers/translateIcon.png";
+	Button.Image = "rbxasset://textures/translateIcon.png";
 
 	if Callback then
 		local bth_signal = Button.MouseButton1Click:Connect(Callback);
