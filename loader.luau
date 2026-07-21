@@ -334,11 +334,17 @@ end);
 
 function NeverLose.new(Config)
 	Config = NeverLose:ProcessParams(Config , {
-		Name = "Neverlose",
-		Content = "Available Products",
+		Name = "Подписки",
+		Content = "Доступные подписки",
 		Process = "Script will automatically load.",
 		Default = "",
 		Yield = true,
+		Profile = LocalPlayer.Name,
+		Links = {
+			{ Name = "Сайт" },
+			{ Name = "Поддержка" },
+			{ Name = "Маркет" },
+		},
 		DefaultVersion = nil,
 		Versions = {},
 		OnGetKey = function() end,
@@ -348,32 +354,42 @@ function NeverLose.new(Config)
 	local LoaderLib = {};
 	local LoaderFrame = Instance.new("Frame")
 	local UICorner = Instance.new("UICorner")
-	local LogoBadge = Instance.new("Frame")
-	local LogoCorner = Instance.new("UICorner")
-	local LogoStroke = Instance.new("UIStroke")
-	local LogoIcon = Instance.new("TextLabel")
+
+	local Sidebar = Instance.new("Frame")
+	local Logo = Instance.new("TextLabel")
+	local NavHolder = Instance.new("Frame")
+	local NavLayout = Instance.new("UIListLayout")
+	local Profile = Instance.new("Frame")
+	local Avatar = Instance.new("ImageLabel")
+	local AvatarCorner = Instance.new("UICorner")
+	local ProfileName = Instance.new("TextLabel")
+
+	local Content = Instance.new("Frame")
 	local WindowName = Instance.new("TextLabel")
 	local WindowContent = Instance.new("TextLabel")
+	local MinButton = Instance.new("TextLabel")
 	local CloseButton = Instance.new("TextLabel")
-	local Divider = Instance.new("Frame")
+
 	local ScrollingFrame = Instance.new("ScrollingFrame")
-	local ScrollPadding = Instance.new("UIPadding")
 	local UIListLayout = Instance.new("UIListLayout")
+
 	local InputFrame = Instance.new("Frame")
 	local UICorner_2 = Instance.new("UICorner")
 	local UIStroke = Instance.new("UIStroke")
 	local KeyIcon = Instance.new("TextLabel")
 	local TextBox = Instance.new("TextBox")
+
 	local KeyFrame = Instance.new("Frame")
 	local UICorner_3 = Instance.new("UICorner")
 	local UIStroke_2 = Instance.new("UIStroke")
-	local Content = Instance.new("TextLabel")
-	local Icon = Instance.new("TextLabel")
+	local Content_Key = Instance.new("TextLabel")
+	local Icon_Key = Instance.new("TextLabel")
+
 	local RedeemFrame = Instance.new("Frame")
 	local UICorner_4 = Instance.new("UICorner")
-	local RedeemGradient = Instance.new("UIGradient")
-	local Content_2 = Instance.new("TextLabel")
-	local Icon_2 = Instance.new("TextLabel")
+	local Content_Redeem = Instance.new("TextLabel")
+	local Icon_Redeem = Instance.new("TextLabel")
+
 	local Shadow = NeverLose:CreateShadow(LoaderFrame,true);
 
 	local function fade(inst, props)
@@ -390,45 +406,123 @@ function NeverLose.new(Config)
 	LoaderFrame.BorderSizePixel = 0
 	LoaderFrame.ClipsDescendants = true
 	LoaderFrame.Position = UDim2.new(255,255,255,255)
-	LoaderFrame.Size = UDim2.new(0, 380, 0, 15)
+	LoaderFrame.Size = UDim2.new(0, 520, 0, 15)
 
 	UICorner.CornerRadius = UDim.new(0, 14)
 	UICorner.Parent = LoaderFrame
 
-	LogoBadge.Name = NeverLose.RandomString();
-	LogoBadge.Parent = LoaderFrame
-	LogoBadge.BackgroundColor3 = NeverLose.AccentColor
-	LogoBadge.BackgroundTransparency = 0.8
-	LogoBadge.BorderSizePixel = 0
-	LogoBadge.Position = UDim2.new(0, 16, 0, 16)
-	LogoBadge.Size = UDim2.new(0, 38, 0, 38)
-	LogoBadge.ZIndex = 7
+	Sidebar.Name = NeverLose.RandomString();
+	Sidebar.Parent = LoaderFrame
+	Sidebar.BackgroundTransparency = 1
+	Sidebar.BorderSizePixel = 0
+	Sidebar.Position = UDim2.new(0, 0, 0, 0)
+	Sidebar.Size = UDim2.new(0, 160, 1, 0)
+	Sidebar.ZIndex = 6
 
-	LogoCorner.CornerRadius = UDim.new(0, 10)
-	LogoCorner.Parent = LogoBadge
+	Logo.Name = NeverLose.RandomString();
+	Logo.Parent = Sidebar
+	Logo.BackgroundTransparency = 1
+	Logo.Position = UDim2.new(0, 24, 0, 20)
+	Logo.Size = UDim2.new(0, 90, 0, 46)
+	Logo.ZIndex = 7
+	Logo.Font = Enum.Font.GothamBlack
+	Logo.Text = "NL"
+	Logo.TextColor3 = NeverLose.AccentColor
+	Logo.TextSize = 34.000
+	Logo.TextXAlignment = Enum.TextXAlignment.Left
 
-	LogoStroke.Transparency = 0.5
-	LogoStroke.Color = NeverLose.AccentColor
-	LogoStroke.Parent = LogoBadge
+	NavHolder.Name = NeverLose.RandomString();
+	NavHolder.Parent = Sidebar
+	NavHolder.BackgroundTransparency = 1
+	NavHolder.Position = UDim2.new(0, 24, 0, 96)
+	NavHolder.Size = UDim2.new(1, -34, 0, 160)
+	NavHolder.ZIndex = 7
 
-	LogoIcon.Name = NeverLose.RandomString();
-	LogoIcon.Parent = LogoBadge
-	LogoIcon.AnchorPoint = Vector2.new(0.5, 0.5)
-	LogoIcon.BackgroundTransparency = 1
-	LogoIcon.Position = UDim2.new(0.5, 0, 0.5, 0)
-	LogoIcon.Size = UDim2.new(0, 22, 0, 22)
-	LogoIcon.ZIndex = 8
-	LogoIcon.FontFace = NeverLose.BuiltInBold
-	LogoIcon.Text = "shield-halved"
-	LogoIcon.TextColor3 = NeverLose.AccentColor
-	LogoIcon.TextSize = 20.000
-	LogoIcon.TextWrapped = true
+	NavLayout.Parent = NavHolder
+	NavLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	NavLayout.Padding = UDim.new(0, 16)
+
+	local NavButtons = {};
+
+	for i,link in next , Config.Links do
+		local NavItem = Instance.new("TextButton")
+		NavItem.Name = NeverLose.RandomString();
+		NavItem.Parent = NavHolder
+		NavItem.BackgroundTransparency = 1
+		NavItem.Size = UDim2.new(1, 0, 0, 20)
+		NavItem.ZIndex = 7
+		NavItem.Font = Enum.Font.GothamMedium
+		NavItem.Text = link.Name
+		NavItem.TextColor3 = Color3.fromRGB(200, 200, 210)
+		NavItem.TextSize = 15.000
+		NavItem.TextTransparency = 0.25
+		NavItem.TextXAlignment = Enum.TextXAlignment.Left
+		NavItem.AutoButtonColor = false
+
+		NeverLose:AddSignal(NavItem.MouseEnter:Connect(function()
+			fade(NavItem, { TextColor3 = NeverLose.AccentColor, TextTransparency = 0 })
+		end))
+		NeverLose:AddSignal(NavItem.MouseLeave:Connect(function()
+			fade(NavItem, { TextColor3 = Color3.fromRGB(200, 200, 210), TextTransparency = 0.25 })
+		end))
+		NeverLose:AddSignal(NavItem.MouseButton1Click:Connect(function()
+			if link.Callback then link.Callback() end;
+		end))
+
+		table.insert(NavButtons, NavItem);
+	end;
+
+	Profile.Name = NeverLose.RandomString();
+	Profile.Parent = Sidebar
+	Profile.AnchorPoint = Vector2.new(0, 1)
+	Profile.BackgroundTransparency = 1
+	Profile.BorderSizePixel = 0
+	Profile.Position = UDim2.new(0, 18, 1, -18)
+	Profile.Size = UDim2.new(1, -24, 0, 36)
+	Profile.ZIndex = 7
+
+	Avatar.Name = NeverLose.RandomString();
+	Avatar.Parent = Profile
+	Avatar.AnchorPoint = Vector2.new(0, 0.5)
+	Avatar.BackgroundColor3 = Color3.fromRGB(18, 20, 28)
+	Avatar.BorderSizePixel = 0
+	Avatar.Position = UDim2.new(0, 0, 0.5, 0)
+	Avatar.Size = UDim2.new(0, 34, 0, 34)
+	Avatar.ZIndex = 8
+
+	AvatarCorner.CornerRadius = UDim.new(1, 0)
+	AvatarCorner.Parent = Avatar
+
+	pcall(function()
+		Avatar.Image = Players:GetUserThumbnailAsync(LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size100x100)
+	end)
+
+	ProfileName.Name = NeverLose.RandomString();
+	ProfileName.Parent = Profile
+	ProfileName.AnchorPoint = Vector2.new(0, 0.5)
+	ProfileName.BackgroundTransparency = 1
+	ProfileName.Position = UDim2.new(0, 44, 0.5, 0)
+	ProfileName.Size = UDim2.new(1, -44, 1, 0)
+	ProfileName.ZIndex = 8
+	ProfileName.Font = Enum.Font.GothamBold
+	ProfileName.Text = Config.Profile
+	ProfileName.TextColor3 = Color3.fromRGB(255, 255, 255)
+	ProfileName.TextSize = 15.000
+	ProfileName.TextXAlignment = Enum.TextXAlignment.Left
+
+	Content.Name = NeverLose.RandomString();
+	Content.Parent = LoaderFrame
+	Content.BackgroundTransparency = 1
+	Content.BorderSizePixel = 0
+	Content.Position = UDim2.new(0, 160, 0, 0)
+	Content.Size = UDim2.new(1, -160, 1, 0)
+	Content.ZIndex = 6
 
 	WindowName.Name = NeverLose.RandomString();
-	WindowName.Parent = LoaderFrame
+	WindowName.Parent = Content
 	WindowName.BackgroundTransparency = 1.000
-	WindowName.Position = UDim2.new(0, 64, 0, 15)
-	WindowName.Size = UDim2.new(1, -110, 0, 22)
+	WindowName.Position = UDim2.new(0, 6, 0, 22)
+	WindowName.Size = UDim2.new(1, -90, 0, 26)
 	WindowName.ZIndex = 7
 	WindowName.Font = Enum.Font.GothamBold
 	WindowName.Text = Config.Name
@@ -437,24 +531,37 @@ function NeverLose.new(Config)
 	WindowName.TextXAlignment = Enum.TextXAlignment.Left
 
 	WindowContent.Name = NeverLose.RandomString();
-	WindowContent.Parent = LoaderFrame
+	WindowContent.Parent = Content
 	WindowContent.BackgroundTransparency = 1.000
-	WindowContent.Position = UDim2.new(0, 64, 0, 36)
-	WindowContent.Size = UDim2.new(1, -110, 0, 15)
+	WindowContent.Position = UDim2.new(0, 6, 0, 48)
+	WindowContent.Size = UDim2.new(1, -90, 0, 18)
 	WindowContent.ZIndex = 7
 	WindowContent.Font = Enum.Font.GothamMedium
 	WindowContent.Text = Config.Content
 	WindowContent.TextColor3 = Color3.fromRGB(140, 145, 160)
-	WindowContent.TextSize = 12.000
+	WindowContent.TextSize = 13.000
 	WindowContent.TextTransparency = 0.150
 	WindowContent.TextXAlignment = Enum.TextXAlignment.Left
 
+	MinButton.Name = NeverLose.RandomString();
+	MinButton.Parent = Content
+	MinButton.AnchorPoint = Vector2.new(1, 0)
+	MinButton.BackgroundTransparency = 1
+	MinButton.Position = UDim2.new(1, -42, 0, 24)
+	MinButton.Size = UDim2.new(0, 22, 0, 22)
+	MinButton.ZIndex = 8
+	MinButton.Font = Enum.Font.GothamBold
+	MinButton.Text = "—"
+	MinButton.TextColor3 = Color3.fromRGB(200, 200, 210)
+	MinButton.TextSize = 18.000
+	MinButton.TextTransparency = 0.35
+
 	CloseButton.Name = NeverLose.RandomString();
-	CloseButton.Parent = LoaderFrame
+	CloseButton.Parent = Content
 	CloseButton.AnchorPoint = Vector2.new(1, 0)
 	CloseButton.BackgroundTransparency = 1
-	CloseButton.Position = UDim2.new(1, -16, 0, 16)
-	CloseButton.Size = UDim2.new(0, 24, 0, 24)
+	CloseButton.Position = UDim2.new(1, -12, 0, 24)
+	CloseButton.Size = UDim2.new(0, 22, 0, 22)
 	CloseButton.ZIndex = 8
 	CloseButton.Font = Enum.Font.GothamBold
 	CloseButton.Text = "×"
@@ -462,44 +569,34 @@ function NeverLose.new(Config)
 	CloseButton.TextSize = 22.000
 	CloseButton.TextTransparency = 0.35
 
-	Divider.Name = NeverLose.RandomString();
-	Divider.Parent = LoaderFrame
-	Divider.AnchorPoint = Vector2.new(0.5, 0)
-	Divider.BackgroundColor3 = Color3.fromRGB(45, 48, 58)
-	Divider.BackgroundTransparency = 0.65
-	Divider.BorderSizePixel = 0
-	Divider.Position = UDim2.new(0.5, 0, 0, 64)
-	Divider.Size = UDim2.new(1, -24, 0, 1)
-	Divider.ZIndex = 7
-
 	ScrollingFrame.Name = NeverLose.RandomString();
-	ScrollingFrame.Parent = LoaderFrame
+	ScrollingFrame.Parent = Content
 	ScrollingFrame.Active = true
 	ScrollingFrame.AnchorPoint = Vector2.new(0.5, 0)
 	ScrollingFrame.BackgroundTransparency = 1.000
 	ScrollingFrame.BorderSizePixel = 0
-	ScrollingFrame.Position = UDim2.new(0.5, 0, 0, 74)
-	ScrollingFrame.Size = UDim2.new(1, -20, 1, -178)
+	ScrollingFrame.Position = UDim2.new(0.5, 0, 0, 82)
+	ScrollingFrame.Size = UDim2.new(1, -16, 1, -172)
 	ScrollingFrame.ZIndex = 7
 	ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
 	ScrollingFrame.ScrollBarThickness = 0
-
-	ScrollPadding.Parent = ScrollingFrame
-	ScrollPadding.PaddingLeft = UDim.new(0, 2)
-	ScrollPadding.PaddingRight = UDim.new(0, 2)
 
 	UIListLayout.Parent = ScrollingFrame
 	UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 	UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 	UIListLayout.Padding = UDim.new(0, 8)
 
+	NeverLose:AddSignal(UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+		ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y + 4)
+	end))
+
 	InputFrame.Name = "InputFrame"
-	InputFrame.Parent = LoaderFrame
+	InputFrame.Parent = Content
 	InputFrame.AnchorPoint = Vector2.new(0.5, 1)
 	InputFrame.BackgroundColor3 = Color3.fromRGB(18, 20, 28)
 	InputFrame.BorderSizePixel = 0
-	InputFrame.Position = UDim2.new(0.5, 0, 1, -60)
-	InputFrame.Size = UDim2.new(1, -24, 0, 38)
+	InputFrame.Position = UDim2.new(0.5, 0, 1, -58)
+	InputFrame.Size = UDim2.new(1, -16, 0, 38)
 	InputFrame.ZIndex = 10
 
 	UICorner_2.CornerRadius = UDim.new(0, 10)
@@ -540,12 +637,12 @@ function NeverLose.new(Config)
 	TextBox.TextXAlignment = Enum.TextXAlignment.Left
 
 	KeyFrame.Name = NeverLose.RandomString();
-	KeyFrame.Parent = LoaderFrame
-	KeyFrame.AnchorPoint = Vector2.new(0.5, 1)
+	KeyFrame.Parent = Content
+	KeyFrame.AnchorPoint = Vector2.new(0, 1)
 	KeyFrame.BackgroundColor3 = Color3.fromRGB(18, 20, 28)
 	KeyFrame.BorderSizePixel = 0
-	KeyFrame.Position = UDim2.new(0.27, 0, 1, -14)
-	KeyFrame.Size = UDim2.new(0.5, -18, 0, 38)
+	KeyFrame.Position = UDim2.new(0, 8, 1, -12)
+	KeyFrame.Size = UDim2.new(0.5, -12, 0, 38)
 	KeyFrame.ZIndex = 10
 
 	UICorner_3.CornerRadius = UDim.new(0, 10)
@@ -555,77 +652,73 @@ function NeverLose.new(Config)
 	UIStroke_2.Color = Color3.fromRGB(45, 48, 58)
 	UIStroke_2.Parent = KeyFrame
 
-	Content.Name = NeverLose.RandomString();
-	Content.Parent = KeyFrame
-	Content.AnchorPoint = Vector2.new(0, 0.5)
-	Content.BackgroundTransparency = 1.000
-	Content.Position = UDim2.new(0, 38, 0.5, 0)
-	Content.Size = UDim2.new(1, -40, 0, 25)
-	Content.ZIndex = 17
-	Content.Font = Enum.Font.GothamBold
-	Content.Text = "Get Key"
-	Content.TextColor3 = Color3.fromRGB(235, 235, 240)
-	Content.TextSize = 14.000
-	Content.TextTransparency = 0.200
-	Content.TextXAlignment = Enum.TextXAlignment.Left
+	Content_Key.Name = NeverLose.RandomString();
+	Content_Key.Parent = KeyFrame
+	Content_Key.AnchorPoint = Vector2.new(0, 0.5)
+	Content_Key.BackgroundTransparency = 1.000
+	Content_Key.Position = UDim2.new(0, 38, 0.5, 0)
+	Content_Key.Size = UDim2.new(1, -40, 0, 25)
+	Content_Key.ZIndex = 17
+	Content_Key.Font = Enum.Font.GothamBold
+	Content_Key.Text = "Get Key"
+	Content_Key.TextColor3 = Color3.fromRGB(235, 235, 240)
+	Content_Key.TextSize = 14.000
+	Content_Key.TextTransparency = 0.200
+	Content_Key.TextXAlignment = Enum.TextXAlignment.Left
 
-	Icon.Name = NeverLose.RandomString();
-	Icon.Parent = KeyFrame
-	Icon.AnchorPoint = Vector2.new(0, 0.5)
-	Icon.BackgroundTransparency = 1.000
-	Icon.Position = UDim2.new(0, 12, 0.5, 0)
-	Icon.Size = UDim2.new(0, 20, 0, 20)
-	Icon.ZIndex = 17
-	Icon.FontFace = NeverLose.BuiltInBold
-	Icon.Text = "chain-link"
-	Icon.TextColor3 = NeverLose.AccentColor
-	Icon.TextSize = 17.000
-	Icon.TextTransparency = 0.250
-	Icon.TextWrapped = true
+	Icon_Key.Name = NeverLose.RandomString();
+	Icon_Key.Parent = KeyFrame
+	Icon_Key.AnchorPoint = Vector2.new(0, 0.5)
+	Icon_Key.BackgroundTransparency = 1.000
+	Icon_Key.Position = UDim2.new(0, 12, 0.5, 0)
+	Icon_Key.Size = UDim2.new(0, 20, 0, 20)
+	Icon_Key.ZIndex = 17
+	Icon_Key.FontFace = NeverLose.BuiltInBold
+	Icon_Key.Text = "chain-link"
+	Icon_Key.TextColor3 = NeverLose.AccentColor
+	Icon_Key.TextSize = 17.000
+	Icon_Key.TextTransparency = 0.250
+	Icon_Key.TextWrapped = true
 
 	RedeemFrame.Name = "RedeemFrame"
-	RedeemFrame.Parent = LoaderFrame
-	RedeemFrame.AnchorPoint = Vector2.new(0.5, 1)
+	RedeemFrame.Parent = Content
+	RedeemFrame.AnchorPoint = Vector2.new(1, 1)
 	RedeemFrame.BackgroundColor3 = NeverLose.AccentColor
 	RedeemFrame.BorderSizePixel = 0
-	RedeemFrame.Position = UDim2.new(0.73, 0, 1, -14)
-	RedeemFrame.Size = UDim2.new(0.5, -18, 0, 38)
+	RedeemFrame.Position = UDim2.new(1, -8, 1, -12)
+	RedeemFrame.Size = UDim2.new(0.5, -12, 0, 38)
 	RedeemFrame.ZIndex = 10
 
 	UICorner_4.CornerRadius = UDim.new(0, 10)
 	UICorner_4.Parent = RedeemFrame
 
-	RedeemGradient.Rotation = 90
-	RedeemGradient.Color = ColorSequence.new(Color3.fromRGB(255,255,255), Color3.fromRGB(225,225,235))
-	RedeemGradient.Parent = RedeemFrame
+	Content_Redeem.Name = NeverLose.RandomString();
+	Content_Redeem.Parent = RedeemFrame
+	Content_Redeem.AnchorPoint = Vector2.new(0, 0.5)
+	Content_Redeem.BackgroundTransparency = 1.000
+	Content_Redeem.Position = UDim2.new(0, 38, 0.5, 0)
+	Content_Redeem.Size = UDim2.new(1, -40, 0, 25)
+	Content_Redeem.ZIndex = 17
+	Content_Redeem.Font = Enum.Font.GothamBold
+	Content_Redeem.Text = "Redeem"
+	Content_Redeem.TextColor3 = Color3.fromRGB(255, 255, 255)
+	Content_Redeem.TextSize = 14.000
+	Content_Redeem.TextTransparency = 0.000
+	Content_Redeem.TextXAlignment = Enum.TextXAlignment.Left
 
-	Content_2.Name = NeverLose.RandomString();
-	Content_2.Parent = RedeemFrame
-	Content_2.AnchorPoint = Vector2.new(0, 0.5)
-	Content_2.BackgroundTransparency = 1.000
-	Content_2.Position = UDim2.new(0, 38, 0.5, 0)
-	Content_2.Size = UDim2.new(1, -40, 0, 25)
-	Content_2.ZIndex = 17
-	Content_2.Font = Enum.Font.GothamBold
-	Content_2.Text = "Redeem"
-	Content_2.TextColor3 = Color3.fromRGB(255, 255, 255)
-	Content_2.TextSize = 14.000
-	Content_2.TextTransparency = 0.000
-	Content_2.TextXAlignment = Enum.TextXAlignment.Left
-
-	Icon_2.Name = NeverLose.RandomString();
-	Icon_2.Parent = RedeemFrame
-	Icon_2.AnchorPoint = Vector2.new(0, 0.5)
-	Icon_2.BackgroundTransparency = 1.000
-	Icon_2.Position = UDim2.new(0, 12, 0.5, 0)
-	Icon_2.Size = UDim2.new(0, 20, 0, 20)
-	Icon_2.ZIndex = 17
-	Icon_2.FontFace = NeverLose.BuiltInBold
-	Icon_2.Text = "gift-card"
-	Icon_2.TextColor3 = Color3.fromRGB(255, 255, 255)
-	Icon_2.TextSize = 17.000
-	Icon_2.TextTransparency = 0.000
-	Icon_2.TextWrapped = true
+	Icon_Redeem.Name = NeverLose.RandomString();
+	Icon_Redeem.Parent = RedeemFrame
+	Icon_Redeem.AnchorPoint = Vector2.new(0, 0.5)
+	Icon_Redeem.BackgroundTransparency = 1.000
+	Icon_Redeem.Position = UDim2.new(0, 12, 0.5, 0)
+	Icon_Redeem.Size = UDim2.new(0, 20, 0, 20)
+	Icon_Redeem.ZIndex = 17
+	Icon_Redeem.FontFace = NeverLose.BuiltInBold
+	Icon_Redeem.Text = "gift-card"
+	Icon_Redeem.TextColor3 = Color3.fromRGB(255, 255, 255)
+	Icon_Redeem.TextSize = 17.000
+	Icon_Redeem.TextTransparency = 0.000
+	Icon_Redeem.TextWrapped = true
 
 	local VersionItems = {};
 	LoaderLib.Renderer = {};
@@ -638,16 +731,23 @@ function NeverLose.new(Config)
 		local VersionFrame = Instance.new("Frame")
 		local UIStroke = Instance.new("UIStroke")
 		local UICorner = Instance.new("UICorner")
-		local VersionIcon = Instance.new("TextLabel")
-		local VersionContent = Instance.new("TextLabel")
+		local Dot = Instance.new("Frame")
+		local DotCorner = Instance.new("UICorner")
 		local VersionName = Instance.new("TextLabel")
+		local VersionContent = Instance.new("TextLabel")
+		local VersionIcon = Instance.new("ImageLabel")
+		local VersionIconCorner = Instance.new("UICorner")
+		local VersionGlyph = Instance.new("TextLabel")
+
+		local hasDot = v.Dot ~= nil;
+		local nameX = hasDot and 30 or 16;
 
 		VersionFrame.Name = NeverLose.RandomString();
 		VersionFrame.Parent = ScrollingFrame
 		VersionFrame.BackgroundColor3 = Color3.fromRGB(18, 20, 28)
-		VersionFrame.BackgroundTransparency = 0.050
+		VersionFrame.BackgroundTransparency = v.Locked and 0.55 or 0.050
 		VersionFrame.BorderSizePixel = 0
-		VersionFrame.Size = UDim2.new(1, -6, 0, 56)
+		VersionFrame.Size = UDim2.new(1, -4, 0, 64)
 		VersionFrame.ZIndex = 15
 
 		UIStroke.Transparency = 0.650
@@ -657,38 +757,37 @@ function NeverLose.new(Config)
 		UICorner.CornerRadius = UDim.new(0, 10)
 		UICorner.Parent = VersionFrame
 
-		VersionIcon.Name = NeverLose.RandomString();
-		VersionIcon.Parent = VersionFrame
-		VersionIcon.AnchorPoint = Vector2.new(1, 0.5)
-		VersionIcon.BackgroundTransparency = 1
-		VersionIcon.Position = UDim2.new(1, -14, 0.5, 0)
-		VersionIcon.Size = UDim2.new(0, 24, 0, 24)
-		VersionIcon.ZIndex = 16
-		VersionIcon.FontFace = NeverLose.BuiltInBold
-		VersionIcon.Text = v.Icon or "box"
-		VersionIcon.TextColor3 = NeverLose.AccentColor
-		VersionIcon.TextSize = 20.000
-		VersionIcon.TextTransparency = 0.200
-		VersionIcon.TextWrapped = true
+		Dot.Name = NeverLose.RandomString();
+		Dot.Parent = VersionFrame
+		Dot.AnchorPoint = Vector2.new(0, 0)
+		Dot.BackgroundColor3 = typeof(v.Dot) == "Color3" and v.Dot or NeverLose.AccentColor
+		Dot.BackgroundTransparency = hasDot and 0 or 1
+		Dot.BorderSizePixel = 0
+		Dot.Position = UDim2.new(0, 16, 0, 18)
+		Dot.Size = UDim2.new(0, 7, 0, 7)
+		Dot.ZIndex = 16
+
+		DotCorner.CornerRadius = UDim.new(1, 0)
+		DotCorner.Parent = Dot
 
 		VersionName.Name = NeverLose.RandomString();
 		VersionName.Parent = VersionFrame
 		VersionName.BackgroundTransparency = 1.000
-		VersionName.Position = UDim2.new(0, 15, 0, 8)
-		VersionName.Size = UDim2.new(1, -55, 0, 22)
+		VersionName.Position = UDim2.new(0, nameX, 0, 12)
+		VersionName.Size = UDim2.new(1, -nameX-55, 0, 22)
 		VersionName.ZIndex = 16
 		VersionName.Font = Enum.Font.GothamBold
 		VersionName.Text = v.Name
-		VersionName.TextColor3 = Color3.fromRGB(255, 255, 255)
+		VersionName.TextColor3 = v.Locked and NeverLose.AccentColor or Color3.fromRGB(255, 255, 255)
 		VersionName.TextSize = 16.000
-		VersionName.TextTransparency = 0.200
+		VersionName.TextTransparency = 0.100
 		VersionName.TextXAlignment = Enum.TextXAlignment.Left
 
 		VersionContent.Name = "VersionContent"
 		VersionContent.Parent = VersionFrame
 		VersionContent.BackgroundTransparency = 1.000
-		VersionContent.Position = UDim2.new(0, 15, 0, 30)
-		VersionContent.Size = UDim2.new(1, -55, 0, 16)
+		VersionContent.Position = UDim2.new(0, 16, 0, 34)
+		VersionContent.Size = UDim2.new(1, -70, 0, 16)
 		VersionContent.ZIndex = 16
 		VersionContent.Font = Enum.Font.GothamMedium
 		VersionContent.Text = v.Content
@@ -697,19 +796,51 @@ function NeverLose.new(Config)
 		VersionContent.TextTransparency = 0.150
 		VersionContent.TextXAlignment = Enum.TextXAlignment.Left
 
+		VersionIcon.Name = NeverLose.RandomString();
+		VersionIcon.Parent = VersionFrame
+		VersionIcon.AnchorPoint = Vector2.new(1, 0.5)
+		VersionIcon.BackgroundColor3 = Color3.fromRGB(28, 31, 42)
+		VersionIcon.BackgroundTransparency = v.Image and 0 or 1
+		VersionIcon.BorderSizePixel = 0
+		VersionIcon.Position = UDim2.new(1, -14, 0.5, 0)
+		VersionIcon.Size = UDim2.new(0, 34, 0, 34)
+		VersionIcon.ZIndex = 16
+		VersionIcon.Image = v.Image or ""
+
+		VersionIconCorner.CornerRadius = UDim.new(0, 8)
+		VersionIconCorner.Parent = VersionIcon
+
+		VersionGlyph.Name = NeverLose.RandomString();
+		VersionGlyph.Parent = VersionFrame
+		VersionGlyph.AnchorPoint = Vector2.new(1, 0.5)
+		VersionGlyph.BackgroundTransparency = 1
+		VersionGlyph.Position = UDim2.new(1, -16, 0.5, 0)
+		VersionGlyph.Size = UDim2.new(0, 24, 0, 24)
+		VersionGlyph.ZIndex = 16
+		VersionGlyph.FontFace = NeverLose.BuiltInBold
+		VersionGlyph.Text = (not v.Image) and (v.Icon or "box") or ""
+		VersionGlyph.TextColor3 = NeverLose.AccentColor
+		VersionGlyph.TextTransparency = v.Image and 1 or 0.2
+		VersionGlyph.TextSize = 20.000
+		VersionGlyph.TextWrapped = true
+
 		VersionProcess.SetRender = LPH_NO_VIRTUALIZE(function(value)
 			if value then
 				fade(UIStroke, { Transparency = 0.650 })
-				fade(VersionIcon, { TextTransparency = 0.200 })
+				fade(VersionName, { TextTransparency = 0.100 })
 				fade(VersionContent, { TextTransparency = 0.150 })
-				fade(VersionName, { TextTransparency = 0.200 })
+				fade(VersionGlyph, { TextTransparency = v.Image and 1 or 0.2 })
+				fade(VersionIcon, { ImageTransparency = 0, BackgroundTransparency = v.Image and 0 or 1 })
+				fade(Dot, { BackgroundTransparency = hasDot and 0 or 1 })
 				VersionProcess.Match();
 			else
 				fade(VersionFrame, { BackgroundTransparency = 1 })
 				fade(UIStroke, { Transparency = 1 })
-				fade(VersionIcon, { TextTransparency = 1 })
-				fade(VersionContent, { TextTransparency = 1 })
 				fade(VersionName, { TextTransparency = 1 })
+				fade(VersionContent, { TextTransparency = 1 })
+				fade(VersionGlyph, { TextTransparency = 1 })
+				fade(VersionIcon, { ImageTransparency = 1, BackgroundTransparency = 1 })
+				fade(Dot, { BackgroundTransparency = 1 })
 			end;
 		end);
 
@@ -720,28 +851,30 @@ function NeverLose.new(Config)
 				fade(VersionFrame, { BackgroundColor3 = NeverLose.AccentColor, BackgroundTransparency = 0.82 })
 				fade(UIStroke, { Transparency = 0.35, Color = NeverLose.AccentColor })
 			else
-				fade(VersionFrame, { BackgroundColor3 = Color3.fromRGB(18, 20, 28), BackgroundTransparency = 0.050 })
+				fade(VersionFrame, { BackgroundColor3 = Color3.fromRGB(18, 20, 28), BackgroundTransparency = v.Locked and 0.55 or 0.050 })
 				fade(UIStroke, { Transparency = 0.650, Color = Color3.fromRGB(45, 48, 58) })
 			end;
 		end);
 
 		NeverLose:AddSignal(VersionFrame.MouseEnter:Connect(function()
-			if Config.DefaultVersion ~= v.Idx then
+			if Config.DefaultVersion ~= v.Idx and not v.Locked then
 				fade(VersionFrame, { BackgroundTransparency = 0 })
 			end;
 		end));
 
 		NeverLose:AddSignal(VersionFrame.MouseLeave:Connect(function()
 			if Config.DefaultVersion ~= v.Idx then
-				fade(VersionFrame, { BackgroundTransparency = 0.050 })
+				fade(VersionFrame, { BackgroundTransparency = v.Locked and 0.55 or 0.050 })
 			end;
 		end));
 
 		NeverLose:AddSignal(NeverLose:CreateInput(VersionFrame,function()
+			if v.Locked then return end;
+
 			Config.DefaultVersion = v.Idx;
 
-			for i,v in next , VersionItems do
-				v.Match();
+			for i,item in next , VersionItems do
+				item.Match();
 			end;
 		end))
 
@@ -784,11 +917,17 @@ function NeverLose.new(Config)
 		ratelimit = false;
 	end))
 
-	NeverLose:AddSignal(CloseButton and NeverLose:CreateInput(CloseButton,function()
+	NeverLose:AddSignal(NeverLose:CreateInput(CloseButton,function()
 		LoaderLib:Unload();
 	end))
 
-	NeverLose:AddSignal(CloseButton.Parent and CloseButton:GetPropertyChangedSignal("TextTransparency"):Connect(function() end))
+	NeverLose:AddSignal(NeverLose:CreateInput(MinButton,function()
+		LoaderLib.Minimized = not LoaderLib.Minimized;
+
+		NeverLose.PlayAnimate(LoaderFrame, VSlowTween, {
+			Size = LoaderLib.Minimized and UDim2.new(0, 520, 0, 64) or UDim2.new(0, 520, 0, 400)
+		});
+	end))
 
 	NeverLose:AddSignal(KeyFrame.MouseEnter:Connect(function()
 		fade(KeyFrame, { BackgroundColor3 = Color3.fromRGB(28, 31, 42) })
@@ -814,33 +953,73 @@ function NeverLose.new(Config)
 		fade(UIStroke, { Transparency = 0.650, Color = Color3.fromRGB(45, 48, 58) })
 	end));
 
+	do
+		local dragging, dragStart, startPos;
+
+		local Header = Instance.new("TextButton")
+		Header.Name = NeverLose.RandomString();
+		Header.Parent = LoaderFrame
+		Header.BackgroundTransparency = 1
+		Header.Text = ""
+		Header.AutoButtonColor = false
+		Header.Position = UDim2.new(0, 160, 0, 0)
+		Header.Size = UDim2.new(1, -160, 0, 64)
+		Header.ZIndex = 5
+
+		NeverLose:AddSignal(Header.InputBegan:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+				dragging = true;
+				dragStart = input.Position;
+				startPos = LoaderFrame.Position;
+			end;
+		end));
+
+		NeverLose:AddSignal(UserInputService.InputChanged:Connect(function(input)
+			if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+				local delta = input.Position - dragStart;
+				LoaderFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y);
+			end;
+		end));
+
+		NeverLose:AddSignal(UserInputService.InputEnded:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+				dragging = false;
+			end;
+		end));
+	end
+
 	LoaderLib.SetRender = LPH_NO_VIRTUALIZE(function(self , value)
 		if value then
 			LoaderFrame.Position = UDim2.new(0.5,0,0.5,0)
 
 			NeverLose.PlayAnimate(LoaderFrame,VSlowTween , {
 				BackgroundTransparency = 0,
-				Size = UDim2.new(0, 380, 0, UIListLayout.AbsoluteContentSize.Y + 182)
+				Size = UDim2.new(0, 520, 0, 400)
 			});
 
-			fade(LogoBadge, { BackgroundTransparency = 0.8 })
-			fade(LogoStroke, { Transparency = 0.5 })
-			fade(LogoIcon, { TextTransparency = 0 })
+			fade(Logo, { TextTransparency = 0 })
+			fade(ProfileName, { TextTransparency = 0 })
+			fade(Avatar, { ImageTransparency = 0, BackgroundTransparency = 0 })
 			fade(WindowName, { TextTransparency = 0 })
 			fade(WindowContent, { TextTransparency = 0.150 })
+			fade(MinButton, { TextTransparency = 0.35 })
 			fade(CloseButton, { TextTransparency = 0.35 })
-			fade(Divider, { BackgroundTransparency = 0.65 })
+
+			for i,nav in next , NavButtons do
+				fade(nav, { TextTransparency = 0.25 })
+			end;
+
 			fade(InputFrame, { BackgroundTransparency = 0 })
 			fade(UIStroke, { Transparency = 0.650 })
 			fade(KeyIcon, { TextTransparency = 0.25 })
 			fade(TextBox, { TextTransparency = 0.350 })
 			fade(KeyFrame, { BackgroundTransparency = 0 })
 			fade(UIStroke_2, { Transparency = 0.650 })
-			fade(Content, { TextTransparency = 0.200 })
-			fade(Icon, { TextTransparency = 0.250 })
+			fade(Content_Key, { TextTransparency = 0.200 })
+			fade(Icon_Key, { TextTransparency = 0.250 })
 			fade(RedeemFrame, { BackgroundTransparency = 0 })
-			fade(Content_2, { TextTransparency = 0 })
-			fade(Icon_2, { TextTransparency = 0 })
+			fade(Content_Redeem, { TextTransparency = 0 })
+			fade(Icon_Redeem, { TextTransparency = 0 })
 
 			for i,Render in next , LoaderLib.Renderer do
 				Render(true);
@@ -849,24 +1028,29 @@ function NeverLose.new(Config)
 			Shadow:Render(true);
 		else
 			fade(LoaderFrame, { BackgroundTransparency = 1 });
-			fade(LogoBadge, { BackgroundTransparency = 1 })
-			fade(LogoStroke, { Transparency = 1 })
-			fade(LogoIcon, { TextTransparency = 1 })
+			fade(Logo, { TextTransparency = 1 })
+			fade(ProfileName, { TextTransparency = 1 })
+			fade(Avatar, { ImageTransparency = 1, BackgroundTransparency = 1 })
 			fade(WindowName, { TextTransparency = 1 })
 			fade(WindowContent, { TextTransparency = 1 })
+			fade(MinButton, { TextTransparency = 1 })
 			fade(CloseButton, { TextTransparency = 1 })
-			fade(Divider, { BackgroundTransparency = 1 })
+
+			for i,nav in next , NavButtons do
+				fade(nav, { TextTransparency = 1 })
+			end;
+
 			fade(InputFrame, { BackgroundTransparency = 1 })
 			fade(UIStroke, { Transparency = 1 })
 			fade(KeyIcon, { TextTransparency = 1 })
 			fade(TextBox, { TextTransparency = 1 })
 			fade(KeyFrame, { BackgroundTransparency = 1 })
 			fade(UIStroke_2, { Transparency = 1 })
-			fade(Content, { TextTransparency = 1 })
-			fade(Icon, { TextTransparency = 1 })
+			fade(Content_Key, { TextTransparency = 1 })
+			fade(Icon_Key, { TextTransparency = 1 })
 			fade(RedeemFrame, { BackgroundTransparency = 1 })
-			fade(Content_2, { TextTransparency = 1 })
-			fade(Icon_2, { TextTransparency = 1 })
+			fade(Content_Redeem, { TextTransparency = 1 })
+			fade(Icon_Redeem, { TextTransparency = 1 })
 
 			for i,Render in next , LoaderLib.Renderer do
 				Render(false);
