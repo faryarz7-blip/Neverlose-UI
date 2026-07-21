@@ -522,11 +522,15 @@ function NeverLose.new(Config)
 	ScrollingFrame.AnchorPoint = Vector2.new(0.5, 0)
 	ScrollingFrame.BackgroundTransparency = 1.000
 	ScrollingFrame.BorderSizePixel = 0
-	ScrollingFrame.Position = UDim2.new(0.5, 0, 0, 82)
-	ScrollingFrame.Size = UDim2.new(1, -16, 1, -172)
-	ScrollingFrame.ZIndex = 7
-	ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
-	ScrollingFrame.ScrollBarThickness = 0
+	ScrollingFrame.Position = UDim2.new(0.5, 0, 0, 92)
+ScrollingFrame.Size = UDim2.new(1, -16, 1, -184)
+ScrollingFrame.ZIndex = 7
+ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+ScrollingFrame.ScrollingEnabled = true
+ScrollingFrame.ScrollBarThickness = 3
+ScrollingFrame.ScrollBarImageColor3 = Color3.fromRGB(60, 64, 78)
+ScrollingFrame.ScrollBarImageTransparency = 0.4
+ScrollingFrame.VerticalScrollBarInset = Enum.ScrollBarInset.ScrollBar
 
 	UIListLayout.Parent = ScrollingFrame
 	UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
