@@ -697,4 +697,430 @@ function NeverLose.new(Config)
 		VersionName.Parent = VersionFrame
 		VersionName.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 		VersionName.BackgroundTransparency = 1.000
-		VersionName.Border
+		VersionName.Border = 12
+		VersionName.Name = NeverLose.RandomString();
+		VersionName.Parent = VersionFrame
+		VersionName.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		VersionName.BackgroundTransparency = 1.000
+		VersionName.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		VersionName.BorderSizePixel = 0
+		VersionName.Position = UDim2.new(0, 40, 0, 8)
+		VersionName.Size = UDim2.new(0, 200, 0, 22)
+		VersionName.ZIndex = 16
+		VersionName.Font = Enum.Font.GothamBold
+		VersionName.Text = v.Name
+		VersionName.TextColor3 = Color3.fromRGB(220, 220, 240)
+		VersionName.TextSize = 16.000
+		VersionName.TextTransparency = 0.100
+		VersionName.TextXAlignment = Enum.TextXAlignment.Left;
+
+		VersionProcess.SetRender = LPH_NO_VIRTUALIZE(function(value)
+			if value then
+				NeverLose.PlayAnimate(VersionFrame,SlowyTween , {
+					BackgroundTransparency = 0.050
+				})
+
+				NeverLose.PlayAnimate(UIStroke,SlowyTween , {
+					Transparency = 0.650
+				})
+
+				NeverLose.PlayAnimate(VersionContent,SlowyTween , {
+					TextTransparency = 0.350
+				})
+
+				NeverLose.PlayAnimate(VersionName,SlowyTween , {
+					TextTransparency = 0.100
+				})
+
+				NeverLose.PlayAnimate(VersionIcon,SlowyTween , {
+					TextTransparency = 0.350
+				})
+
+				VersionProcess.Match();
+			else
+				NeverLose.PlayAnimate(VersionFrame,SlowyTween , {
+					BackgroundTransparency = 1
+				})
+
+				NeverLose.PlayAnimate(UIStroke,SlowyTween , {
+					Transparency = 1
+				})
+
+				NeverLose.PlayAnimate(VersionContent,SlowyTween , {
+					TextTransparency = 1
+				})
+
+				NeverLose.PlayAnimate(VersionName,SlowyTween , {
+					TextTransparency = 1
+				})
+
+				NeverLose.PlayAnimate(VersionIcon,SlowyTween , {
+					TextTransparency = 1
+				})
+			end;
+		end);
+
+		table.insert(LoaderLib.Renderer,VersionProcess.SetRender);
+
+		VersionProcess.Match = LPH_NO_VIRTUALIZE(function()
+			if Config.DefaultVersion == v.Idx then
+				NeverLose.PlayAnimate(VersionFrame,SlowyTween , {
+					BackgroundColor3 = NeverLose.AccentColor,
+					BackgroundTransparency = 0.15
+				})
+				NeverLose.PlayAnimate(UIStroke,SlowyTween , {
+					Color = NeverLose.AccentColor,
+					Transparency = 0.3
+				})
+				NeverLose.PlayAnimate(VersionIcon,SlowyTween , {
+					TextTransparency = 0
+				})
+				NeverLose.PlayAnimate(VersionName,SlowyTween , {
+					TextColor3 = Color3.fromRGB(255, 255, 255)
+				})
+			else
+				NeverLose.PlayAnimate(VersionFrame,SlowyTween , {
+					BackgroundColor3 = Color3.fromRGB(18, 18, 28),
+					BackgroundTransparency = 0.050
+				})
+				NeverLose.PlayAnimate(UIStroke,SlowyTween , {
+					Color = Color3.fromRGB(45, 48, 58),
+					Transparency = 0.650
+				})
+				NeverLose.PlayAnimate(VersionIcon,SlowyTween , {
+					TextTransparency = 0.350
+				})
+				NeverLose.PlayAnimate(VersionName,SlowyTween , {
+					TextColor3 = Color3.fromRGB(220, 220, 240)
+				})
+			end;
+		end);
+
+		-- Эффект наведения на версию
+		VersionFrame.MouseEnter:Connect(function()
+			NeverLose.PlayAnimate(VersionFrame,SlowyTween,{
+				BackgroundTransparency = 0.15,
+				BackgroundColor3 = Color3.fromRGB(30, 30, 45)
+			})
+		end)
+
+		VersionFrame.MouseLeave:Connect(function()
+			if Config.DefaultVersion ~= v.Idx then
+				NeverLose.PlayAnimate(VersionFrame,SlowyTween,{
+					BackgroundTransparency = 0.050,
+					BackgroundColor3 = Color3.fromRGB(18, 18, 28)
+				})
+			end
+		end)
+
+		NeverLose:AddSignal(NeverLose:CreateInput(VersionFrame,function()
+			Config.DefaultVersion = v.Idx;
+
+			for i,v in next , VersionItems do
+				v.Match();
+			end;
+		end))
+
+		VersionProcess.Match();
+		VersionProcess.SetRender(false);
+	end;
+
+	NeverLose:AddSignal(NeverLose:CreateInput(KeyFrame,function()
+		return Config.OnGetKey();
+	end))
+
+	local ratelimit = false;
+	NeverLose:AddSignal(NeverLose:CreateInput(RedeemFrame,function()
+		if ratelimit then
+			return;
+		end;
+
+		ratelimit = true;
+
+		-- Анимация нажатия
+		NeverLose.PlayAnimate(RedeemFrame, FastTween, {
+			Size = UDim2.new(0.48, -24, 0, 36)
+		})
+		task.wait(0.05)
+		NeverLose.PlayAnimate(RedeemFrame, FastTween, {
+			Size = UDim2.new(0.48, -20, 0, 38)
+		})
+
+		local check,rason = Config.OnRedeem(TextBox.Text);
+
+		if check then
+			TextBox.TextEditable = false;
+			-- Успешная анимация
+			NeverLose.PlayAnimate(RedeemFrame, SlowyTween, {
+				BackgroundColor3 = Color3.fromRGB(50, 200, 100)
+			})
+			LoaderLib.MarkLoad.SetValue(true);
+			task.wait(0.1);
+			return LoaderLib.YieldEvent:Fire(Config.DefaultVersion or TextBox.Text);
+		else
+			-- Анимация ошибки
+			NeverLose.PlayAnimate(RedeemFrame, SlowyTween, {
+				BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+			})
+			task.wait(0.3)
+			NeverLose.PlayAnimate(RedeemFrame, SlowyTween, {
+				BackgroundColor3 = NeverLose.AccentColor
+			})
+			
+			if rason then
+				TextBox.Text = tostring(rason);
+				TextBox.TextColor3 = Color3.fromRGB(255, 100, 100)
+				task.wait(0.75);
+				TextBox.Text = "";
+				TextBox.TextColor3 = Color3.fromRGB(200, 200, 220)
+			else
+				TextBox.Text = "";
+			end;
+		end;
+
+		ratelimit = false;
+	end))
+
+	-- Эффекты наведения с улучшенными цветами
+	NeverLose:AddSignal(KeyFrame.MouseEnter:Connect(function()
+		NeverLose.PlayAnimate(KeyFrame,SlowyTween,{
+			BackgroundColor3 = Color3.fromRGB(30, 30, 45)
+		})
+		NeverLose.PlayAnimate(UIStroke_2,SlowyTween,{
+			Color = NeverLose.AccentColor,
+			Transparency = 0.3
+		})
+	end));
+
+	NeverLose:AddSignal(KeyFrame.MouseLeave:Connect(function()
+		NeverLose.PlayAnimate(KeyFrame,SlowyTween,{
+			BackgroundColor3 = Color3.fromRGB(18, 18, 28)
+		})
+		NeverLose.PlayAnimate(UIStroke_2,SlowyTween,{
+			Color = Color3.fromRGB(45, 48, 58),
+			Transparency = 0.650
+		})
+	end));
+
+	NeverLose:AddSignal(RedeemFrame.MouseEnter:Connect(function()
+		NeverLose.PlayAnimate(RedeemFrame,SlowyTween,{
+			BackgroundColor3 = NeverLose.AccentColor2,
+			Size = UDim2.new(0.48, -16, 0, 40)
+		})
+	end));
+
+	NeverLose:AddSignal(RedeemFrame.MouseLeave:Connect(function()
+		NeverLose.PlayAnimate(RedeemFrame,SlowyTween,{
+			BackgroundColor3 = NeverLose.AccentColor,
+			Size = UDim2.new(0.48, -20, 0, 38)
+		})
+	end));
+
+	NeverLose:AddSignal(InputFrame.MouseEnter:Connect(function()
+		NeverLose.PlayAnimate(InputFrame,SlowyTween,{
+			BackgroundColor3 = Color3.fromRGB(25, 25, 38)
+		})
+		NeverLose.PlayAnimate(UIStroke,SlowyTween,{
+			Color = NeverLose.AccentColor,
+			Transparency = 0.3
+		})
+	end));
+
+	NeverLose:AddSignal(InputFrame.MouseLeave:Connect(function()
+		NeverLose.PlayAnimate(InputFrame,SlowyTween,{
+			BackgroundColor3 = Color3.fromRGB(18, 18, 28)
+		})
+		NeverLose.PlayAnimate(UIStroke,SlowyTween,{
+			Color = Color3.fromRGB(45, 48, 58),
+			Transparency = 0.650
+		})
+	end));
+
+	-- Фокус на поле ввода
+	TextBox.Focused:Connect(function()
+		NeverLose.PlayAnimate(UIStroke, SlowyTween, {
+			Color = NeverLose.AccentColor,
+			Transparency = 0.2,
+			Thickness = 2
+		})
+	end)
+
+	TextBox.FocusLost:Connect(function()
+		NeverLose.PlayAnimate(UIStroke, SlowyTween, {
+			Color = Color3.fromRGB(45, 48, 58),
+			Transparency = 0.650,
+			Thickness = 1
+		})
+	end)
+
+	LoaderLib.SetRender = LPH_NO_VIRTUALIZE(function(self , value)
+		if value then
+			LoaderFrame.Position = UDim2.new(0.5,0,0.5,0)
+
+			NeverLose.PlayAnimate(LoaderFrame,VSlowTween , {
+				BackgroundTransparency = 0.055,
+				Size = UDim2.new(0, 380, 0, UIListLayout.AbsoluteContentSize.Y + 180)
+			});
+
+			NeverLose.PlayAnimate(WindowName,SlowyTween , {
+				TextTransparency = 0
+			})
+
+			NeverLose.PlayAnimate(AccentLine,SlowyTween , {
+				Size = UDim2.new(0, 50, 0, 2)
+			})
+
+			NeverLose.PlayAnimate(WindowContent,SlowyTween , {
+				TextTransparency = 0.350
+			})
+
+			NeverLose.PlayAnimate(InputFrame,SlowyTween , {
+				BackgroundTransparency = 0.05
+			})
+
+			NeverLose.PlayAnimate(UIStroke,SlowyTween , {
+				Transparency = 0.650
+			})
+
+			NeverLose.PlayAnimate(TextBox,SlowyTween , {
+				TextTransparency = 0.150
+			})
+
+			NeverLose.PlayAnimate(KeyFrame,SlowyTween , {
+				BackgroundTransparency = 0.05
+			})
+
+			NeverLose.PlayAnimate(UIStroke_2,SlowyTween , {
+				Transparency = 0.650
+			})
+
+			NeverLose.PlayAnimate(Content,SlowyTween , {
+				TextTransparency = 0.150
+			})
+
+			NeverLose.PlayAnimate(Icon,SlowyTween , {
+				TextTransparency = 0.150
+			})
+
+			NeverLose.PlayAnimate(RedeemFrame,SlowyTween , {
+				BackgroundTransparency = 0
+			})
+
+			NeverLose.PlayAnimate(UIStroke_3,SlowyTween , {
+				Transparency = 0.650
+			})
+
+			NeverLose.PlayAnimate(Content_2,SlowyTween , {
+				TextTransparency = 0
+			});
+
+			NeverLose.PlayAnimate(Icon_2,SlowyTween , {
+				TextTransparency = 0
+			})
+
+			for i,Render in next , LoaderLib.Renderer do
+				Render(true);
+			end;
+
+			Shadow:Render(true);
+		else
+			NeverLose.PlayAnimate(LoaderFrame,SlowyTween , {
+				BackgroundTransparency = 1
+			});
+
+			NeverLose.PlayAnimate(WindowName,SlowyTween , {
+				TextTransparency = 1
+			})
+
+			NeverLose.PlayAnimate(AccentLine,SlowyTween , {
+				Size = UDim2.new(0, 0, 0, 2)
+			})
+
+			NeverLose.PlayAnimate(WindowContent,SlowyTween , {
+				TextTransparency = 1
+			})
+
+			NeverLose.PlayAnimate(InputFrame,SlowyTween , {
+				BackgroundTransparency = 1
+			})
+
+			NeverLose.PlayAnimate(UIStroke,SlowyTween , {
+				Transparency = 1
+			})
+
+			NeverLose.PlayAnimate(TextBox,SlowyTween , {
+				TextTransparency = 1
+			})
+
+			NeverLose.PlayAnimate(KeyFrame,SlowyTween , {
+				BackgroundTransparency = 1
+			})
+
+			NeverLose.PlayAnimate(UIStroke_2,SlowyTween , {
+				Transparency = 1
+			})
+
+			NeverLose.PlayAnimate(Content,SlowyTween , {
+				TextTransparency = 1
+			})
+
+			NeverLose.PlayAnimate(Icon,SlowyTween , {
+				TextTransparency = 1
+			})
+
+			NeverLose.PlayAnimate(RedeemFrame,SlowyTween , {
+				BackgroundTransparency = 1
+			})
+
+			NeverLose.PlayAnimate(UIStroke_3,SlowyTween , {
+				Transparency = 1
+			})
+
+			NeverLose.PlayAnimate(Content_2,SlowyTween , {
+				TextTransparency = 1
+			});
+
+			NeverLose.PlayAnimate(Icon_2,SlowyTween , {
+				TextTransparency = 1
+			})
+
+			for i,Render in next , LoaderLib.Renderer do
+				Render(false);
+			end;
+
+			LoaderLib.MarkLoad.SetValue(false);
+			Shadow:Render(false);
+		end;
+	end);
+
+	LoaderLib:SetRender(false);
+
+	task.delay(0.3,LoaderLib.SetRender,LoaderLib,true);
+
+	function LoaderLib:Await()
+		return LoaderLib.YieldEvent.Event:Wait();
+	end;
+
+	function LoaderLib:Unload()
+		LoaderLib:SetRender(false);
+		task.wait()
+		task.delay(0.45,function()
+			NeverLose:Unload()
+		end);
+		task.wait(0.3);
+	end;
+
+	return LoaderLib;
+end;
+
+function NeverLose:Unload()
+	NeverLose.ScreenGui:Destroy();
+
+	for i,v in next , NeverLose.GlobalSignals do
+		pcall(v.Disconnect,v)
+	end;
+
+	table.clear(NeverLose);
+end;
+
+return NeverLose;
