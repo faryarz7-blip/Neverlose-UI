@@ -253,6 +253,361 @@ function NeverLose:CreateShadow(parent , RollingEffect)
 	return Shadow;
 end;
 
+-- ════════════════════════════════════════════════════
+--  ОКНО ПРОДУКТА (открывается по клику на карточку)
+-- ════════════════════════════════════════════════════
+function NeverLose:CreateProductWindow()
+	local ProductLib = {};
+
+	local Window = Instance.new("Frame")
+	Window.Name = NeverLose.RandomString();
+	Window.Parent = NeverLose.ScreenGui
+	Window.AnchorPoint = Vector2.new(0.5, 0.5)
+	Window.BackgroundColor3 = Color3.fromRGB(10, 11, 16)
+	Window.BorderSizePixel = 0
+	Window.ClipsDescendants = true
+	Window.Position = UDim2.new(0.5, 0, 0.5, 0)
+	Window.Size = UDim2.new(0, 470, 0, 0)
+	Window.Visible = false
+	Window.ZIndex = 200
+
+	local WinCorner = Instance.new("UICorner")
+	WinCorner.CornerRadius = UDim.new(0, 14)
+	WinCorner.Parent = Window
+
+	local WinStroke = Instance.new("UIStroke")
+	WinStroke.Transparency = 0.65
+	WinStroke.Color = Color3.fromRGB(45, 48, 58)
+	WinStroke.Parent = Window
+
+	local Shadow = NeverLose:CreateShadow(Window, false);
+
+	-- ── Шапка: иконка + имя + закрыть ──
+	local Icon = Instance.new("ImageLabel")
+	Icon.Name = NeverLose.RandomString();
+	Icon.Parent = Window
+	Icon.BackgroundColor3 = Color3.fromRGB(20, 22, 27)
+	Icon.BorderSizePixel = 0
+	Icon.Position = UDim2.new(0, 20, 0, 18)
+	Icon.Size = UDim2.new(0, 34, 0, 34)
+	Icon.ZIndex = 201
+	local IconCorner = Instance.new("UICorner")
+	IconCorner.CornerRadius = UDim.new(0, 8)
+	IconCorner.Parent = Icon
+
+	local IconGlyph = Instance.new("TextLabel")
+	IconGlyph.Name = NeverLose.RandomString();
+	IconGlyph.Parent = Icon
+	IconGlyph.BackgroundTransparency = 1
+	IconGlyph.Size = UDim2.new(1, 0, 1, 0)
+	IconGlyph.ZIndex = 202
+	IconGlyph.FontFace = NeverLose.BuiltInBold
+	IconGlyph.Text = "box"
+	IconGlyph.TextColor3 = NeverLose.AccentColor
+	IconGlyph.TextSize = 20.000
+	IconGlyph.TextWrapped = true
+
+	local Title = Instance.new("TextLabel")
+	Title.Name = NeverLose.RandomString();
+	Title.Parent = Window
+	Title.BackgroundTransparency = 1
+	Title.Position = UDim2.new(0, 64, 0, 18)
+	Title.Size = UDim2.new(1, -110, 0, 34)
+	Title.ZIndex = 201
+	Title.Font = Enum.Font.GothamBold
+	Title.Text = "Product"
+	Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+	Title.TextSize = 20.000
+	Title.TextXAlignment = Enum.TextXAlignment.Left
+
+	local Close = Instance.new("TextButton")
+	Close.Name = NeverLose.RandomString();
+	Close.Parent = Window
+	Close.AnchorPoint = Vector2.new(1, 0)
+	Close.BackgroundTransparency = 1
+	Close.Position = UDim2.new(1, -14, 0, 18)
+	Close.Size = UDim2.new(0, 26, 0, 26)
+	Close.ZIndex = 201
+	Close.Font = Enum.Font.GothamBold
+	Close.Text = "×"
+	Close.TextColor3 = Color3.fromRGB(200, 200, 210)
+	Close.TextSize = 24.000
+	Close.AutoButtonColor = false
+
+	-- ── Левая колонка: инфо-строки ──
+	local InfoHolder = Instance.new("Frame")
+	InfoHolder.Name = NeverLose.RandomString();
+	InfoHolder.Parent = Window
+	InfoHolder.BackgroundTransparency = 1
+	InfoHolder.Position = UDim2.new(0, 20, 0, 74)
+	InfoHolder.Size = UDim2.new(0, 200, 1, -140)
+	InfoHolder.ZIndex = 201
+	local InfoLayout = Instance.new("UIListLayout")
+	InfoLayout.Parent = InfoHolder
+	InfoLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	InfoLayout.Padding = UDim.new(0, 10)
+
+	-- ── Правая колонка: чейнджлог ──
+	local ChangeDate = Instance.new("TextLabel")
+	ChangeDate.Name = NeverLose.RandomString();
+	ChangeDate.Parent = Window
+	ChangeDate.BackgroundTransparency = 1
+	ChangeDate.Position = UDim2.new(0, 240, 0, 74)
+	ChangeDate.Size = UDim2.new(1, -260, 0, 18)
+	ChangeDate.ZIndex = 201
+	ChangeDate.Font = Enum.Font.GothamMedium
+	ChangeDate.Text = ""
+	ChangeDate.TextColor3 = Color3.fromRGB(235, 235, 240)
+	ChangeDate.TextSize = 13.000
+	ChangeDate.TextXAlignment = Enum.TextXAlignment.Left
+
+	local ChangeScroll = Instance.new("ScrollingFrame")
+	ChangeScroll.Name = NeverLose.RandomString();
+	ChangeScroll.Parent = Window
+	ChangeScroll.Active = true
+	ChangeScroll.BackgroundTransparency = 1
+	ChangeScroll.BorderSizePixel = 0
+	ChangeScroll.Position = UDim2.new(0, 240, 0, 98)
+	ChangeScroll.Size = UDim2.new(1, -260, 1, -168)
+	ChangeScroll.ZIndex = 201
+	ChangeScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+	ChangeScroll.ScrollBarThickness = 3
+	ChangeScroll.ScrollBarImageColor3 = Color3.fromRGB(60, 64, 78)
+	ChangeScroll.ScrollBarImageTransparency = 0.4
+
+	local ChangeText = Instance.new("TextLabel")
+	ChangeText.Name = NeverLose.RandomString();
+	ChangeText.Parent = ChangeScroll
+	ChangeText.BackgroundTransparency = 1
+	ChangeText.Size = UDim2.new(1, -6, 0, 0)
+	ChangeText.AutomaticSize = Enum.AutomaticSize.Y
+	ChangeText.ZIndex = 202
+	ChangeText.Font = Enum.Font.GothamMedium
+	ChangeText.Text = ""
+	ChangeText.RichText = true
+	ChangeText.TextColor3 = Color3.fromRGB(150, 155, 170)
+	ChangeText.TextSize = 12.000
+	ChangeText.TextWrapped = true
+	ChangeText.TextXAlignment = Enum.TextXAlignment.Left
+	ChangeText.TextYAlignment = Enum.TextYAlignment.Top
+	ChangeText:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
+		ChangeScroll.CanvasSize = UDim2.new(0, 0, 0, ChangeText.AbsoluteSize.Y + 8)
+	end)
+
+	-- ── Нижняя панель ──
+	local Community = Instance.new("TextButton")
+	Community.Name = NeverLose.RandomString();
+	Community.Parent = Window
+	Community.AnchorPoint = Vector2.new(0, 1)
+	Community.BackgroundTransparency = 1
+	Community.Position = UDim2.new(0, 20, 1, -20)
+	Community.Size = UDim2.new(0, 90, 0, 20)
+	Community.ZIndex = 201
+	Community.Font = Enum.Font.GothamMedium
+	Community.Text = "Сообщество"
+	Community.TextColor3 = Color3.fromRGB(150, 155, 170)
+	Community.TextSize = 13.000
+	Community.TextXAlignment = Enum.TextXAlignment.Left
+	Community.AutoButtonColor = false
+
+	local ApiDocs = Instance.new("TextButton")
+	ApiDocs.Name = NeverLose.RandomString();
+	ApiDocs.Parent = Window
+	ApiDocs.AnchorPoint = Vector2.new(0, 1)
+	ApiDocs.BackgroundTransparency = 1
+	ApiDocs.Position = UDim2.new(0, 118, 1, -20)
+	ApiDocs.Size = UDim2.new(0, 130, 0, 20)
+	ApiDocs.ZIndex = 201
+	ApiDocs.Font = Enum.Font.GothamMedium
+	ApiDocs.Text = "API документация"
+	ApiDocs.TextColor3 = Color3.fromRGB(150, 155, 170)
+	ApiDocs.TextSize = 13.000
+	ApiDocs.TextXAlignment = Enum.TextXAlignment.Left
+	ApiDocs.AutoButtonColor = false
+
+	local VersionTag = Instance.new("TextLabel")
+	VersionTag.Name = NeverLose.RandomString();
+	VersionTag.Parent = Window
+	VersionTag.AnchorPoint = Vector2.new(1, 1)
+	VersionTag.BackgroundColor3 = Color3.fromRGB(20, 22, 27)
+	VersionTag.BorderSizePixel = 0
+	VersionTag.Position = UDim2.new(1, -140, 1, -14)
+	VersionTag.Size = UDim2.new(0, 34, 0, 30)
+	VersionTag.ZIndex = 201
+	VersionTag.Font = Enum.Font.GothamBold
+	VersionTag.Text = "H3"
+	VersionTag.TextColor3 = Color3.fromRGB(235, 235, 240)
+	VersionTag.TextSize = 13.000
+	local VTagCorner = Instance.new("UICorner")
+	VTagCorner.CornerRadius = UDim.new(0, 8)
+	VTagCorner.Parent = VersionTag
+
+	local Download = Instance.new("TextButton")
+	Download.Name = NeverLose.RandomString();
+	Download.Parent = Window
+	Download.AnchorPoint = Vector2.new(1, 1)
+	Download.BackgroundColor3 = NeverLose.AccentColor
+	Download.BorderSizePixel = 0
+	Download.Position = UDim2.new(1, -14, 1, -14)
+	Download.Size = UDim2.new(0, 118, 0, 30)
+	Download.ZIndex = 201
+	Download.Font = Enum.Font.GothamBold
+	Download.Text = "▷ Загрузить"
+	Download.TextColor3 = Color3.fromRGB(255, 255, 255)
+	Download.TextSize = 14.000
+	Download.AutoButtonColor = false
+	local DLCorner = Instance.new("UICorner")
+	DLCorner.CornerRadius = UDim.new(0, 10)
+	DLCorner.Parent = Download
+
+	-- ── Логика ──
+	local currentData;
+
+	local function clearInfo()
+		for _,child in next , InfoHolder:GetChildren() do
+			if child:IsA("Frame") then
+				child:Destroy();
+			end;
+		end;
+	end;
+
+	local function addInfoRow(name, value)
+		local Row = Instance.new("Frame")
+		Row.Name = NeverLose.RandomString();
+		Row.Parent = InfoHolder
+		Row.BackgroundTransparency = 1
+		Row.Size = UDim2.new(1, 0, 0, 18)
+		Row.ZIndex = 201
+
+		local Label = Instance.new("TextLabel")
+		Label.Parent = Row
+		Label.BackgroundTransparency = 1
+		Label.Position = UDim2.new(0, 0, 0, 0)
+		Label.Size = UDim2.new(0, 100, 1, 0)
+		Label.ZIndex = 202
+		Label.Font = Enum.Font.GothamMedium
+		Label.Text = name
+		Label.TextColor3 = Color3.fromRGB(150, 155, 170)
+		Label.TextSize = 13.000
+		Label.TextXAlignment = Enum.TextXAlignment.Left
+
+		local Value = Instance.new("TextLabel")
+		Value.Parent = Row
+		Value.BackgroundTransparency = 1
+		Value.Position = UDim2.new(0, 100, 0, 0)
+		Value.Size = UDim2.new(1, -100, 1, 0)
+		Value.ZIndex = 202
+		Value.Font = Enum.Font.GothamBold
+		Value.Text = value
+		Value.TextColor3 = NeverLose.AccentColor
+		Value.TextSize = 13.000
+		Value.TextXAlignment = Enum.TextXAlignment.Left
+	end;
+
+	ProductLib.Show = LPH_NO_VIRTUALIZE(function(self , data)
+		currentData = data or {};
+
+		Title.Text = data.Name or "Product";
+		ChangeDate.Text = data.Date or "";
+		ChangeText.Text = data.Changelog or "";
+		VersionTag.Text = data.Version or "";
+		Community.Text = (data.Links and data.Links[1] and data.Links[1].Name) or "Сообщество";
+		ApiDocs.Text = (data.Links and data.Links[2] and data.Links[2].Name) or "API документация";
+
+		if data.Image and data.Image ~= "" then
+			Icon.Image = data.Image;
+			Icon.BackgroundTransparency = 0;
+			IconGlyph.TextTransparency = 1;
+		else
+			Icon.Image = "";
+			IconGlyph.Text = data.Icon or "box";
+			IconGlyph.TextTransparency = 0.2;
+		end;
+
+		clearInfo();
+		for _,row in next , (data.Info or {}) do
+			addInfoRow(row.Name or "", row.Value or "");
+		end;
+
+		Window.Visible = true;
+		Window.Size = UDim2.new(0, 470, 0, 0);
+		NeverLose.PlayAnimate(Window, VSlowTween, { Size = UDim2.new(0, 470, 0, 330) });
+		Shadow:Render(true);
+	end);
+
+	ProductLib.Hide = LPH_NO_VIRTUALIZE(function()
+		Shadow:Render(false);
+		NeverLose.PlayAnimate(Window, VSlowTween, { Size = UDim2.new(0, 470, 0, 0) });
+		task.delay(0.4, function()
+			Window.Visible = false;
+		end);
+	end);
+
+	NeverLose:AddSignal(NeverLose:CreateInput(Close, function()
+		ProductLib.Hide();
+	end));
+
+	NeverLose:AddSignal(NeverLose:CreateInput(Community, function()
+		if currentData and currentData.Links and currentData.Links[1] and currentData.Links[1].Callback then
+			currentData.Links[1].Callback();
+		end;
+	end));
+
+	NeverLose:AddSignal(NeverLose:CreateInput(ApiDocs, function()
+		if currentData and currentData.Links and currentData.Links[2] and currentData.Links[2].Callback then
+			currentData.Links[2].Callback();
+		end;
+	end));
+
+	NeverLose:AddSignal(Download.MouseEnter:Connect(function()
+		NeverLose.PlayAnimate(Download, SlowyTween, { BackgroundColor3 = NeverLose.AccentColor:Lerp(Color3.fromRGB(255,255,255), 0.15) });
+	end));
+	NeverLose:AddSignal(Download.MouseLeave:Connect(function()
+		NeverLose.PlayAnimate(Download, SlowyTween, { BackgroundColor3 = NeverLose.AccentColor });
+	end));
+
+	NeverLose:AddSignal(NeverLose:CreateInput(Download, function()
+		if currentData and currentData.OnDownload then
+			currentData.OnDownload(currentData);
+		end;
+	end));
+
+	-- Перетаскивание окна продукта
+	do
+		local dragging, dragStart, startPos;
+		local Header = Instance.new("TextButton")
+		Header.Name = NeverLose.RandomString();
+		Header.Parent = Window
+		Header.BackgroundTransparency = 1
+		Header.Text = ""
+		Header.AutoButtonColor = false
+		Header.Position = UDim2.new(0, 0, 0, 0)
+		Header.Size = UDim2.new(1, -60, 0, 64)
+		Header.ZIndex = 200
+
+		NeverLose:AddSignal(Header.InputBegan:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+				dragging = true;
+				dragStart = input.Position;
+				startPos = Window.Position;
+			end;
+		end));
+		NeverLose:AddSignal(UserInputService.InputChanged:Connect(function(input)
+			if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+				local delta = input.Position - dragStart;
+				Window.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y);
+			end;
+		end));
+		NeverLose:AddSignal(UserInputService.InputEnded:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+				dragging = false;
+			end;
+		end));
+	end
+
+	return ProductLib;
+end;
+
 NeverLose.ProcessParams = LPH_NO_VIRTUALIZE(function(self , Params , Fixed)
 	Params = Params or {};
 
@@ -283,6 +638,7 @@ function NeverLose.new(Config)
 		Versions = {},
 		OnGetKey = function() end,
 		OnRedeem = function() end,
+		OnProductOpen = function() end,
 	});
 
 	local LoaderLib = {};
@@ -327,6 +683,10 @@ function NeverLose.new(Config)
 
 	local Shadow = NeverLose:CreateShadow(LoaderFrame,true);
 
+	-- Единое окно продукта для всего лоадера
+	local ProductWindow = NeverLose:CreateProductWindow();
+	LoaderLib.ProductWindow = ProductWindow;
+
 	local function fade(inst, props)
 		NeverLose.PlayAnimate(inst, SlowyTween, props);
 	end
@@ -340,7 +700,7 @@ function NeverLose.new(Config)
 	LoaderFrame.BackgroundColor3 = Color3.fromRGB(10, 11, 16)
 	LoaderFrame.BorderSizePixel = 0
 	LoaderFrame.ClipsDescendants = true
-	LoaderFrame.Position = UDim2.new(255,255,255,255)
+	LoaderFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
 	LoaderFrame.Size = UDim2.new(0, 520, 0, 15)
 
 	UICorner.CornerRadius = UDim.new(0, 14)
@@ -523,14 +883,14 @@ function NeverLose.new(Config)
 	ScrollingFrame.BackgroundTransparency = 1.000
 	ScrollingFrame.BorderSizePixel = 0
 	ScrollingFrame.Position = UDim2.new(0.5, 0, 0, 92)
-ScrollingFrame.Size = UDim2.new(1, -16, 1, -184)
-ScrollingFrame.ZIndex = 7
-ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
-ScrollingFrame.ScrollingEnabled = true
-ScrollingFrame.ScrollBarThickness = 3
-ScrollingFrame.ScrollBarImageColor3 = Color3.fromRGB(60, 64, 78)
-ScrollingFrame.ScrollBarImageTransparency = 0.4
-ScrollingFrame.VerticalScrollBarInset = Enum.ScrollBarInset.ScrollBar
+	ScrollingFrame.Size = UDim2.new(1, -16, 1, -184)
+	ScrollingFrame.ZIndex = 7
+	ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+	ScrollingFrame.ScrollingEnabled = true
+	ScrollingFrame.ScrollBarThickness = 3
+	ScrollingFrame.ScrollBarImageColor3 = Color3.fromRGB(60, 64, 78)
+	ScrollingFrame.ScrollBarImageTransparency = 0.4
+	ScrollingFrame.VerticalScrollBarInset = Enum.ScrollBarInset.ScrollBar
 
 	UIListLayout.Parent = ScrollingFrame
 	UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
@@ -691,7 +1051,9 @@ ScrollingFrame.VerticalScrollBarInset = Enum.ScrollBarInset.ScrollBar
 		local VersionGlyph = Instance.new("TextLabel")
 
 		local hasDot = v.Dot ~= nil;
-		local nameX = hasDot and 30 or 16;
+		-- Слева всегда картинка/иконка продукта, текст сдвинут вправо
+		local iconX = 12;
+		local textX = 58;
 
 		VersionFrame.Name = NeverLose.RandomString();
 		VersionFrame.Parent = ScrollingFrame
@@ -708,15 +1070,45 @@ ScrollingFrame.VerticalScrollBarInset = Enum.ScrollBarInset.ScrollBar
 		UICorner.CornerRadius = UDim.new(0, 10)
 		UICorner.Parent = VersionFrame
 
+		-- Иконка/картинка продукта слева
+		VersionIcon.Name = NeverLose.RandomString();
+		VersionIcon.Parent = VersionFrame
+		VersionIcon.AnchorPoint = Vector2.new(0, 0.5)
+		VersionIcon.BackgroundColor3 = Color3.fromRGB(28, 31, 42)
+		VersionIcon.BackgroundTransparency = 0
+		VersionIcon.BorderSizePixel = 0
+		VersionIcon.Position = UDim2.new(0, iconX, 0.5, 0)
+		VersionIcon.Size = UDim2.new(0, 36, 0, 36)
+		VersionIcon.ZIndex = 16
+		VersionIcon.Image = v.Image or ""
+
+		VersionIconCorner.CornerRadius = UDim.new(0, 8)
+		VersionIconCorner.Parent = VersionIcon
+
+		VersionGlyph.Name = NeverLose.RandomString();
+		VersionGlyph.Parent = VersionIcon
+		VersionGlyph.AnchorPoint = Vector2.new(0.5, 0.5)
+		VersionGlyph.BackgroundTransparency = 1
+		VersionGlyph.Position = UDim2.new(0.5, 0, 0.5, 0)
+		VersionGlyph.Size = UDim2.new(0, 22, 0, 22)
+		VersionGlyph.ZIndex = 17
+		VersionGlyph.FontFace = NeverLose.BuiltInBold
+		VersionGlyph.Text = (not v.Image) and (v.Icon or "box") or ""
+		VersionGlyph.TextColor3 = NeverLose.AccentColor
+		VersionGlyph.TextTransparency = v.Image and 1 or 0.2
+		VersionGlyph.TextSize = 20.000
+		VersionGlyph.TextWrapped = true
+
+		-- Точка-статус (в углу иконки)
 		Dot.Name = NeverLose.RandomString();
 		Dot.Parent = VersionFrame
-		Dot.AnchorPoint = Vector2.new(0, 0)
+		Dot.AnchorPoint = Vector2.new(0.5, 0.5)
 		Dot.BackgroundColor3 = typeof(v.Dot) == "Color3" and v.Dot or NeverLose.AccentColor
 		Dot.BackgroundTransparency = hasDot and 0 or 1
 		Dot.BorderSizePixel = 0
-		Dot.Position = UDim2.new(0, 16, 0, 18)
-		Dot.Size = UDim2.new(0, 7, 0, 7)
-		Dot.ZIndex = 16
+		Dot.Position = UDim2.new(0, iconX + 34, 0.5, -12)
+		Dot.Size = UDim2.new(0, 8, 0, 8)
+		Dot.ZIndex = 18
 
 		DotCorner.CornerRadius = UDim.new(1, 0)
 		DotCorner.Parent = Dot
@@ -724,8 +1116,8 @@ ScrollingFrame.VerticalScrollBarInset = Enum.ScrollBarInset.ScrollBar
 		VersionName.Name = NeverLose.RandomString();
 		VersionName.Parent = VersionFrame
 		VersionName.BackgroundTransparency = 1.000
-		VersionName.Position = UDim2.new(0, nameX, 0, 12)
-		VersionName.Size = UDim2.new(1, -nameX-55, 0, 22)
+		VersionName.Position = UDim2.new(0, textX, 0, 12)
+		VersionName.Size = UDim2.new(1, -textX-55, 0, 22)
 		VersionName.ZIndex = 16
 		VersionName.Font = Enum.Font.GothamBold
 		VersionName.Text = v.Name
@@ -737,8 +1129,8 @@ ScrollingFrame.VerticalScrollBarInset = Enum.ScrollBarInset.ScrollBar
 		VersionContent.Name = "VersionContent"
 		VersionContent.Parent = VersionFrame
 		VersionContent.BackgroundTransparency = 1.000
-		VersionContent.Position = UDim2.new(0, 16, 0, 34)
-		VersionContent.Size = UDim2.new(1, -70, 0, 16)
+		VersionContent.Position = UDim2.new(0, textX, 0, 34)
+		VersionContent.Size = UDim2.new(1, -textX-55, 0, 16)
 		VersionContent.ZIndex = 16
 		VersionContent.Font = Enum.Font.GothamMedium
 		VersionContent.Text = v.Content
@@ -747,33 +1139,21 @@ ScrollingFrame.VerticalScrollBarInset = Enum.ScrollBarInset.ScrollBar
 		VersionContent.TextTransparency = 0.150
 		VersionContent.TextXAlignment = Enum.TextXAlignment.Left
 
-		VersionIcon.Name = NeverLose.RandomString();
-		VersionIcon.Parent = VersionFrame
-		VersionIcon.AnchorPoint = Vector2.new(1, 0.5)
-		VersionIcon.BackgroundColor3 = Color3.fromRGB(28, 31, 42)
-		VersionIcon.BackgroundTransparency = v.Image and 0 or 1
-		VersionIcon.BorderSizePixel = 0
-		VersionIcon.Position = UDim2.new(1, -14, 0.5, 0)
-		VersionIcon.Size = UDim2.new(0, 34, 0, 34)
-		VersionIcon.ZIndex = 16
-		VersionIcon.Image = v.Image or ""
-
-		VersionIconCorner.CornerRadius = UDim.new(0, 8)
-		VersionIconCorner.Parent = VersionIcon
-
-		VersionGlyph.Name = NeverLose.RandomString();
-		VersionGlyph.Parent = VersionFrame
-		VersionGlyph.AnchorPoint = Vector2.new(1, 0.5)
-		VersionGlyph.BackgroundTransparency = 1
-		VersionGlyph.Position = UDim2.new(1, -16, 0.5, 0)
-		VersionGlyph.Size = UDim2.new(0, 24, 0, 24)
-		VersionGlyph.ZIndex = 16
-		VersionGlyph.FontFace = NeverLose.BuiltInBold
-		VersionGlyph.Text = (not v.Image) and (v.Icon or "box") or ""
-		VersionGlyph.TextColor3 = NeverLose.AccentColor
-		VersionGlyph.TextTransparency = v.Image and 1 or 0.2
-		VersionGlyph.TextSize = 20.000
-		VersionGlyph.TextWrapped = true
+		-- Стрелка "открыть" справа
+		local Arrow = Instance.new("TextLabel")
+		Arrow.Name = NeverLose.RandomString();
+		Arrow.Parent = VersionFrame
+		Arrow.AnchorPoint = Vector2.new(1, 0.5)
+		Arrow.BackgroundTransparency = 1
+		Arrow.Position = UDim2.new(1, -16, 0.5, 0)
+		Arrow.Size = UDim2.new(0, 20, 0, 20)
+		Arrow.ZIndex = 16
+		Arrow.FontFace = NeverLose.BuiltInBold
+		Arrow.Text = "chevron-right"
+		Arrow.TextColor3 = Color3.fromRGB(140, 145, 160)
+		Arrow.TextTransparency = 0.2
+		Arrow.TextSize = 18.000
+		Arrow.TextWrapped = true
 
 		VersionProcess.SetRender = LPH_NO_VIRTUALIZE(function(value)
 			if value then
@@ -781,8 +1161,9 @@ ScrollingFrame.VerticalScrollBarInset = Enum.ScrollBarInset.ScrollBar
 				fade(VersionName, { TextTransparency = 0.100 })
 				fade(VersionContent, { TextTransparency = 0.150 })
 				fade(VersionGlyph, { TextTransparency = v.Image and 1 or 0.2 })
-				fade(VersionIcon, { ImageTransparency = 0, BackgroundTransparency = v.Image and 0 or 1 })
+				fade(VersionIcon, { ImageTransparency = 0, BackgroundTransparency = 0 })
 				fade(Dot, { BackgroundTransparency = hasDot and 0 or 1 })
+				fade(Arrow, { TextTransparency = 0.2 })
 				VersionProcess.Match();
 			else
 				fade(VersionFrame, { BackgroundTransparency = 1 })
@@ -792,6 +1173,7 @@ ScrollingFrame.VerticalScrollBarInset = Enum.ScrollBarInset.ScrollBar
 				fade(VersionGlyph, { TextTransparency = 1 })
 				fade(VersionIcon, { ImageTransparency = 1, BackgroundTransparency = 1 })
 				fade(Dot, { BackgroundTransparency = 1 })
+				fade(Arrow, { TextTransparency = 1 })
 			end;
 		end);
 
@@ -811,14 +1193,17 @@ ScrollingFrame.VerticalScrollBarInset = Enum.ScrollBarInset.ScrollBar
 			if Config.DefaultVersion ~= v.Idx and not v.Locked then
 				fade(VersionFrame, { BackgroundTransparency = 0 })
 			end;
+			fade(Arrow, { TextColor3 = NeverLose.AccentColor, TextTransparency = 0 })
 		end));
 
 		NeverLose:AddSignal(VersionFrame.MouseLeave:Connect(function()
 			if Config.DefaultVersion ~= v.Idx then
 				fade(VersionFrame, { BackgroundTransparency = v.Locked and 0.55 or 0.050 })
 			end;
+			fade(Arrow, { TextColor3 = Color3.fromRGB(140, 145, 160), TextTransparency = 0.2 })
 		end));
 
+		-- КЛИК ПО ПРОДУКТУ -> открыть окно продукта
 		NeverLose:AddSignal(NeverLose:CreateInput(VersionFrame,function()
 			if v.Locked then return end;
 
@@ -826,6 +1211,34 @@ ScrollingFrame.VerticalScrollBarInset = Enum.ScrollBarInset.ScrollBar
 
 			for i,item in next , VersionItems do
 				item.Match();
+			end;
+
+			-- Данные для окна продукта
+			ProductWindow:Show({
+				Name = v.Name,
+				Image = v.Image,
+				Icon = v.Icon,
+				Version = v.Version or v.Idx,
+				Date = v.Date,
+				Changelog = v.Changelog or v.Content,
+				Info = v.Info or {},
+				Links = v.WindowLinks or {
+					{ Name = "Сообщество" },
+					{ Name = "API документация" },
+				},
+				OnDownload = function(data)
+					ProductWindow:Hide();
+					if v.OnDownload then
+						v.OnDownload(v);
+					end;
+					LoaderLib.MarkLoad.SetValue(true);
+					task.wait(0.1);
+					LoaderLib.YieldEvent:Fire(v.Idx);
+				end,
+			});
+
+			if Config.OnProductOpen then
+				Config.OnProductOpen(v);
 			end;
 		end))
 
@@ -854,6 +1267,7 @@ ScrollingFrame.VerticalScrollBarInset = Enum.ScrollBarInset.ScrollBar
 
 			task.wait(0.1);
 
+			ratelimit = false;
 			return LoaderLib.YieldEvent:Fire(Config.DefaultVersion or TextBox.Text);
 		else
 			if rason then
