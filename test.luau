@@ -816,9 +816,21 @@ function NeverLose.new(Config)
     ScrollingFrame.Position = UDim2.new(0.5, 0, 0, 96); ScrollingFrame.Size = UDim2.new(1, -16, 1, -190); ScrollingFrame.ZIndex = 7;
     ScrollingFrame.ScrollingEnabled = true;
     ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0);
-    ScrollingFrame.AutomaticCanvasSize = Enum.AutomaticCanvasSize.Y;   -- холст сам растёт под любое кол-во карточек
     ScrollingFrame.ScrollBarThickness = 3;
     ScrollingFrame.ScrollBarImageColor3 = Color3.fromRGB(60, 64, 78); ScrollingFrame.VerticalScrollBarInset = Enum.ScrollBarInset.ScrollBar;
+
+UIListLayout.Parent = ScrollingFrame; UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center;
+UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder; UIListLayout.Padding = UDim.new(0, 8);
+
+
+-- Ручной расчёт высоты холста (работает на любой версии Roblox)
+NeverLose:AddSignal(UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0,
+        UIListLayout.AbsoluteContentSize.Y
+        + ScrollPadding.PaddingTop.Offset
+        + ScrollPadding.PaddingBottom.Offset
+        + 4);
+end));
 
     local ScrollPadding = Instance.new("UIPadding", ScrollingFrame);
     ScrollPadding.PaddingTop = UDim.new(0, 6);      -- чтобы обводка верхней карточки не обрезалась
