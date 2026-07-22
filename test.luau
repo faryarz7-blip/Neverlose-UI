@@ -380,7 +380,7 @@ function NeverLose:CreateProductWindow(AttachTo)
 
     -- Привязка к главному окну: описание двигается только вместе с ним
     if AttachTo then
-        local FollowOffset = Vector2.new(0, 0);   -- смести при желании, напр. Vector2.new(500, 0) — правее
+        local FollowOffset = Vector2.new(0, 0);
         local function syncPos()
             Window.Position = UDim2.new(
                 AttachTo.Position.X.Scale, AttachTo.Position.X.Offset + FollowOffset.X,
@@ -476,9 +476,9 @@ function NeverLose:CreateProductWindow(AttachTo)
     ChangeText.TextWrapped = true;
     ChangeText.TextXAlignment = Enum.TextXAlignment.Left;
     ChangeText.TextYAlignment = Enum.TextYAlignment.Top;
-    ChangeText:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
+    NeverLose:AddSignal(ChangeText:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
         ChangeScroll.CanvasSize = UDim2.new(0, 0, 0, ChangeText.AbsoluteSize.Y + 8);
-    end);
+    end));
 
     local Community = Instance.new("TextButton", Window);
     Community.AnchorPoint = Vector2.new(0, 1);
@@ -646,7 +646,7 @@ function NeverLose:CreateProductWindow(AttachTo)
         if currentData and currentData.OnDownload then
             currentData.OnDownload(currentData);
         end;
-        task.wait(1.5); -- anti-spam
+        task.wait(1.5);
         downloadBusy = false;
     end);
 
@@ -710,7 +710,7 @@ function NeverLose.new(Config)
     local Icon_Redeem = Instance.new("TextLabel");
 
     local Shadow = NeverLose:CreateShadow(LoaderFrame, true);
-    local ProductWindow = NeverLose:CreateProductWindow(LoaderFrame);   -- привязка к главному окну
+    local ProductWindow = NeverLose:CreateProductWindow(LoaderFrame);
     LoaderLib.ProductWindow = ProductWindow;
 
     local function fade(inst, props) NeverLose.PlayAnimate(inst, SlowyTween, props); end
@@ -794,11 +794,7 @@ function NeverLose.new(Config)
     CloseButton.Font = Enum.Font.GothamBold; CloseButton.Text = "×"; CloseButton.TextColor3 = Color3.fromRGB(200, 200, 210);
     CloseButton.TextSize = 22; CloseButton.TextTransparency = 0.35;
 
-    -- ─────────────────────────────────────────────────
-    --  СПИСОК ПРОДУКТОВ (исправленный)
-    --  • верхняя карточка не обрезается (UIPadding + сдвиг)
-    --  • прокрутка при любом числе продуктов (ручной CanvasSize)
-    -- ─────────────────────────────────────────────────
+    -- СПИСОК ПРОДУКТОВ
     ScrollingFrame.Parent = ContentPanel; ScrollingFrame.Active = true; ScrollingFrame.AnchorPoint = Vector2.new(0.5, 0);
     ScrollingFrame.BackgroundTransparency = 1; ScrollingFrame.BorderSizePixel = 0; ScrollingFrame.ClipsDescendants = true;
     ScrollingFrame.Position = UDim2.new(0.5, 0, 0, 96); ScrollingFrame.Size = UDim2.new(1, -16, 1, -190); ScrollingFrame.ZIndex = 7;
@@ -816,7 +812,6 @@ function NeverLose.new(Config)
     UIListLayout.Parent = ScrollingFrame; UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center;
     UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder; UIListLayout.Padding = UDim.new(0, 8);
 
-    -- Ручной расчёт высоты холста (работает на любой версии Roblox)
     NeverLose:AddSignal(UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
         ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0,
             UIListLayout.AbsoluteContentSize.Y
@@ -870,7 +865,6 @@ function NeverLose.new(Config)
     Icon_Redeem.FontFace = NeverLose.BuiltInBold; Icon_Redeem.Text = "lock"; Icon_Redeem.TextColor3 = Color3.fromRGB(255, 255, 255);
     Icon_Redeem.TextSize = 17; Icon_Redeem.TextWrapped = true;
 
-    -- ── Redeem button state (red when empty) ──
     local function isKeyEmpty()
         return TextBox.Text == nil or TextBox.Text:gsub("%s", "") == "";
     end;
@@ -889,7 +883,6 @@ function NeverLose.new(Config)
     end;
     NeverLose:AddSignal(TextBox:GetPropertyChangedSignal("Text"):Connect(UpdateRedeemButton));
 
-    -- restore saved key
     if Config.SaveKey then
         pcall(function()
             if isfile and isfile(Config.KeyFile) then
@@ -926,8 +919,8 @@ function NeverLose.new(Config)
         VersionFrame.BackgroundColor3 = Color3.fromRGB(18, 20, 28);
         VersionFrame.BackgroundTransparency = v.Locked and 0.55 or 0.05;
         VersionFrame.BorderSizePixel = 0; VersionFrame.Size = UDim2.new(1, -4, 0, 64); VersionFrame.ZIndex = 15;
-        VersionFrame.LayoutOrder = i;                          -- стабильный порядок карточек
-        local VScale = Instance.new("UIScale", VersionFrame);  -- для анимаций появления/наведения
+        VersionFrame.LayoutOrder = i;
+        local VScale = Instance.new("UIScale", VersionFrame);
         VScale.Scale = 1;
         VStroke.Transparency = 0.65; VStroke.Color = Color3.fromRGB(45, 48, 58);
         VCorner.CornerRadius = UDim.new(0, 10);
@@ -967,7 +960,6 @@ function NeverLose.new(Config)
 
         VersionProcess.SetRender = LPH_NO_VIRTUALIZE(function(value)
             if value then
-                -- анимация появления (каскадом по индексу)
                 VScale.Scale = 0.9;
                 task.delay((i - 1) * 0.05, function()
                     NeverLose.PlayAnimate(VScale, VSlowTween, { Scale = 1 });
@@ -998,7 +990,7 @@ function NeverLose.new(Config)
 
         NeverLose:AddSignal(VersionFrame.MouseEnter:Connect(function()
             if Config.DefaultVersion ~= v.Idx and not v.Locked then fade(VersionFrame, { BackgroundTransparency = 0 }); end;
-            NeverLose.PlayAnimate(VScale, FastTween, { Scale = 1.02 });   -- лёгкий "pop" при наведении
+            NeverLose.PlayAnimate(VScale, FastTween, { Scale = 1.02 });
             fade(Arrow, { TextColor3 = NeverLose.AccentColor, TextTransparency = 0 });
         end));
         NeverLose:AddSignal(VersionFrame.MouseLeave:Connect(function()
@@ -1062,16 +1054,14 @@ function NeverLose.new(Config)
         redeemBusy = true;
         TextBox.TextEditable = false;
 
-        local ok, result = pcall(function() return Config.OnRedeem(TextBox.Text); end);
+        -- OnRedeem вызывается РОВНО ОДИН РАЗ
+        local ok, res, reason = pcall(Config.OnRedeem, TextBox.Text);
         local success, why;
         if ok then
-            success, why = result, select(2, Config.OnRedeem(TextBox.Text));
-            -- на случай, если OnRedeem возвращает (bool, reason):
-            local s2, w2 = Config.OnRedeem(TextBox.Text);
-            success, why = s2, w2;
+            success, why = res, reason;
         else
             success, why = false, "Redeem handler error";
-            NeverLose:Log("ERROR", "OnRedeem crashed: " .. tostring(result));
+            NeverLose:Log("ERROR", "OnRedeem crashed: " .. tostring(res));
         end;
 
         if success then
@@ -1089,7 +1079,7 @@ function NeverLose.new(Config)
             NeverLose:Notify("License", tostring(why or "Invalid key"), "error");
         end;
 
-        task.wait(0.75); -- cooldown against spam
+        task.wait(0.75);
         redeemBusy = false;
     end);
 
@@ -1123,7 +1113,7 @@ function NeverLose.new(Config)
     end
     NeverLose:CreateInput(NeverLose, MinButton, function() SetMinimized(not LoaderLib.Minimized); end);
 
-    -- ── Drag (главное окно; окно описания следует за ним) ──
+    -- ── Drag ──
     do
         local dragging, dragStart, startPos;
         local Header = Instance.new("TextButton", LoaderFrame);
@@ -1181,15 +1171,30 @@ function NeverLose.new(Config)
     task.delay(0.3, LoaderLib.SetRender, LoaderLib, true);
     NeverLose:Notify("Neverlose", "Loader ready. Redeem your key to unlock products.", "info", 5);
 
-    function LoaderLib:Await() return LoaderLib.YieldEvent.Event:Wait(); end;
+    -- ★ ГЛАВНОЕ ИСПРАВЛЕНИЕ: после выбора продукта GUI полностью уничтожается ★
+    function LoaderLib:Await()
+        local result = LoaderLib.YieldEvent.Event:Wait();
+        task.wait(0.35);            -- даём доиграть анимации скрытия
+        NeverLose:Unload();         -- удаляем ScreenGui + отключаем ВСЕ сигналы (в т.ч. перетаскивание)
+        return result;
+    end;
+
     function LoaderLib:Unload()
         LoaderLib:SetRender(false);
-        task.wait();
-        task.delay(0.45, function() NeverLose:Unload(); end);
-        task.wait(0.3);
+        task.wait(0.45);
+        NeverLose:Unload();
     end;
 
     return LoaderLib;
+end;
+
+function NeverLose:Unload()
+    if NeverLose.Unloaded then return; end;   -- защита от двойного вызова
+    NeverLose.Unloaded = true;
+    NeverLose:Log("INFO", "Unloading loader.");
+    for _, v in next, NeverLose.GlobalSignals do pcall(function() v:Disconnect(); end); end;
+    table.clear(NeverLose.GlobalSignals);
+    pcall(function() NeverLose.ScreenGui:Destroy(); end);
 end;
 
 return NeverLose
