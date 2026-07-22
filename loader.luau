@@ -216,32 +216,6 @@ function NeverLose:CheckExecutor()
 	return missing;
 end;
 
--- ════════════════════════════════════════════════════
---  SAFE EXECUTE (pcall wrapper for cheat scripts)
--- ════════════════════════════════════════════════════
-function NeverLose:SafeExecute(source)
-	local ok, err = pcall(function()
-		if type(source) == "function" then
-			source();
-		elseif type(source) == "string" then
-			assert(loadstring, "loadstring is not available");
-			loadstring(game:HttpGet(source))();
-		else
-			error("Nothing to execute");
-		end;
-	end);
-
-	if ok then
-		NeverLose:Log("INFO", "Script executed successfully.");
-		NeverLose:Notify("Loader", "Script loaded successfully.", "success");
-	else
-		NeverLose:Log("ERROR", "Script execution failed: " .. tostring(err));
-		NeverLose:Notify("Script Error", tostring(err), "error", 8);
-	end;
-
-	return ok, err;
-end;
-
 function NeverLose:CreateInput(self_, Frame, Callback)
 	local Button = Instance.new('ImageButton', Frame);
 	Button.ZIndex = Frame.ZIndex + 10;
@@ -1039,12 +1013,6 @@ function NeverLose.new(Config)
 					ProductWindow:Hide();
 					LoaderLib:SetRender(false);
 					LoaderLib.YieldEvent:Fire(v.Idx);
-
-					if v.Execute then
-						NeverLose:SafeExecute(v.Execute);
-					elseif v.ScriptUrl then
-						NeverLose:SafeExecute(v.ScriptUrl);
-					end;
 				end,
 			});
 		end);
