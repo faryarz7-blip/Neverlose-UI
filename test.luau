@@ -1219,23 +1219,10 @@ local Window = NeverLose.new({
     Versions = {
         { Idx = "speed", Name = "+1 Speed Keyboard Escape", Content = "Буст скорости", Icon = "gauge-high", Version = "H3", Date = "22.07.2026", Dot = Color3.fromRGB(70, 200, 120),
           Changelog = "• Авто-старт\n• Фикс краша на мобилках\n• Оптимизация",
-          Info = { { Name = "Status", Value = "Working" }, { Name = "Users", Value = "12 430" } } },
-
-        { Idx = "farm", Name = "Auto Farm Pro", Content = "Автофарм ресурсов", Icon = "wheat-awn", Version = "v2", Date = "20.07.2026",
-          Changelog = "• Новый маршрут\n• Anti-AFK",
-          Info = { { Name = "Status", Value = "Working" }, { Name = "Users", Value = "8 902" } } },
-
-        { Idx = "esp", Name = "ESP / Visuals", Content = "Обводки, имена, дистанция", Icon = "eye", Version = "v5", Date = "18.07.2026",
-          Changelog = "• Box ESP\n• Tracers\n• Name tags",
-          Info = { { Name = "Status", Value = "Working" } } },
-
-        { Idx = "aim", Name = "Aim Assist", Content = "Помощь в наведении", Icon = "crosshairs", Version = "v1", Date = "15.07.2026", Locked = true,
-          Changelog = "• Smoothing\n• FOV circle",
-          Info = { { Name = "Status", Value = "Premium" } } },
-
-        { Idx = "misc", Name = "Misc Tools", Content = "Мелкие утилиты", Icon = "screwdriver-wrench", Version = "v3", Date = "10.07.2026",
-          Changelog = "• Fly\n• Noclip\n• Infinite jump",
-          Info = { { Name = "Status", Value = "Working" } } },
+         Info      = {
+                { Name = "Branch:", Value = "Debug" },
+                { Name = "Update:",  Value = "22.07.2026 9:21" }
+				{ Name = "Licence:" Value = "32.12.2030 9:21"}
     },
 
     OnGetKey = function()
