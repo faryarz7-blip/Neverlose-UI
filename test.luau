@@ -359,7 +359,7 @@ end);
 -- ════════════════════════════════════════════════════
 --  PRODUCT WINDOW
 -- ════════════════════════════════════════════════════
-function NeverLose:CreateProductWindow()
+function NeverLose:CreateProductWindow(AttachTo)
     local ProductLib = {};
     ProductLib.Unlocked = false;
 
@@ -377,6 +377,19 @@ function NeverLose:CreateProductWindow()
     local WinCorner = Instance.new("UICorner", Window); WinCorner.CornerRadius = UDim.new(0, 14);
     local WinStroke = Instance.new("UIStroke", Window); WinStroke.Transparency = 0.65; WinStroke.Color = Color3.fromRGB(45, 48, 58);
     local Shadow = NeverLose:CreateShadow(Window, false);
+
+    -- Привязка к главному окну: описание двигается только вместе с ним
+    if AttachTo then
+        local FollowOffset = Vector2.new(0, 0);   -- смести при желании, напр. Vector2.new(500, 0) — правее
+        local function syncPos()
+            Window.Position = UDim2.new(
+                AttachTo.Position.X.Scale, AttachTo.Position.X.Offset + FollowOffset.X,
+                AttachTo.Position.Y.Scale, AttachTo.Position.Y.Offset + FollowOffset.Y
+            );
+        end
+        syncPos();
+        NeverLose:AddSignal(AttachTo:GetPropertyChangedSignal("Position"):Connect(syncPos));
+    end
 
     local Icon = Instance.new("ImageLabel", Window);
     Icon.BackgroundColor3 = Color3.fromRGB(20, 22, 27);
@@ -637,31 +650,6 @@ function NeverLose:CreateProductWindow()
         downloadBusy = false;
     end);
 
-    do
-        local dragging, dragStart, startPos;
-        local Header = Instance.new("TextButton", Window);
-        Header.BackgroundTransparency = 1; Header.Text = ""; Header.AutoButtonColor = false;
-        Header.Position = UDim2.new(0, 0, 0, 0);
-        Header.Size = UDim2.new(1, -60, 0, 64);
-        Header.ZIndex = 200;
-        NeverLose:AddSignal(Header.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-                dragging = true; dragStart = input.Position; startPos = Window.Position;
-            end;
-        end));
-        NeverLose:AddSignal(UserInputService.InputChanged:Connect(function(input)
-            if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-                local delta = input.Position - dragStart;
-                Window.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y);
-            end;
-        end));
-        NeverLose:AddSignal(UserInputService.InputEnded:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-                dragging = false;
-            end;
-        end));
-    end
-
     return ProductLib;
 end;
 
@@ -722,7 +710,7 @@ function NeverLose.new(Config)
     local Icon_Redeem = Instance.new("TextLabel");
 
     local Shadow = NeverLose:CreateShadow(LoaderFrame, true);
-    local ProductWindow = NeverLose:CreateProductWindow();
+    local ProductWindow = NeverLose:CreateProductWindow(LoaderFrame);   -- привязка к главному окну
     LoaderLib.ProductWindow = ProductWindow;
 
     local function fade(inst, props) NeverLose.PlayAnimate(inst, SlowyTween, props); end
@@ -808,8 +796,8 @@ function NeverLose.new(Config)
 
     -- ─────────────────────────────────────────────────
     --  СПИСОК ПРОДУКТОВ (исправленный)
-    --  • верхняя карточка больше не обрезается (UIPadding + сдвиг)
-    --  • список прокручивается при любом числе продуктов (AutomaticCanvasSize)
+    --  • верхняя карточка не обрезается (UIPadding + сдвиг)
+    --  • прокрутка при любом числе продуктов (ручной CanvasSize)
     -- ─────────────────────────────────────────────────
     ScrollingFrame.Parent = ContentPanel; ScrollingFrame.Active = true; ScrollingFrame.AnchorPoint = Vector2.new(0.5, 0);
     ScrollingFrame.BackgroundTransparency = 1; ScrollingFrame.BorderSizePixel = 0; ScrollingFrame.ClipsDescendants = true;
@@ -819,27 +807,23 @@ function NeverLose.new(Config)
     ScrollingFrame.ScrollBarThickness = 3;
     ScrollingFrame.ScrollBarImageColor3 = Color3.fromRGB(60, 64, 78); ScrollingFrame.VerticalScrollBarInset = Enum.ScrollBarInset.ScrollBar;
 
-UIListLayout.Parent = ScrollingFrame; UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center;
-UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder; UIListLayout.Padding = UDim.new(0, 8);
-
-
--- Ручной расчёт высоты холста (работает на любой версии Roblox)
-NeverLose:AddSignal(UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-    ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0,
-        UIListLayout.AbsoluteContentSize.Y
-        + ScrollPadding.PaddingTop.Offset
-        + ScrollPadding.PaddingBottom.Offset
-        + 4);
-end));
-
     local ScrollPadding = Instance.new("UIPadding", ScrollingFrame);
-    ScrollPadding.PaddingTop = UDim.new(0, 6);      -- чтобы обводка верхней карточки не обрезалась
+    ScrollPadding.PaddingTop = UDim.new(0, 6);
     ScrollPadding.PaddingBottom = UDim.new(0, 6);
     ScrollPadding.PaddingLeft = UDim.new(0, 4);
     ScrollPadding.PaddingRight = UDim.new(0, 4);
 
     UIListLayout.Parent = ScrollingFrame; UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center;
     UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder; UIListLayout.Padding = UDim.new(0, 8);
+
+    -- Ручной расчёт высоты холста (работает на любой версии Roblox)
+    NeverLose:AddSignal(UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0,
+            UIListLayout.AbsoluteContentSize.Y
+            + ScrollPadding.PaddingTop.Offset
+            + ScrollPadding.PaddingBottom.Offset
+            + 4);
+    end));
 
     InputFrame.Parent = ContentPanel; InputFrame.AnchorPoint = Vector2.new(0.5, 1); InputFrame.BackgroundColor3 = Color3.fromRGB(18, 20, 28);
     InputFrame.BorderSizePixel = 0; InputFrame.Position = UDim2.new(0.5, 0, 1, -58); InputFrame.Size = UDim2.new(1, -16, 0, 38); InputFrame.ZIndex = 10;
@@ -942,8 +926,8 @@ end));
         VersionFrame.BackgroundColor3 = Color3.fromRGB(18, 20, 28);
         VersionFrame.BackgroundTransparency = v.Locked and 0.55 or 0.05;
         VersionFrame.BorderSizePixel = 0; VersionFrame.Size = UDim2.new(1, -4, 0, 64); VersionFrame.ZIndex = 15;
-        VersionFrame.LayoutOrder = i;                       -- стабильный порядок карточек
-        local VScale = Instance.new("UIScale", VersionFrame); -- для анимаций появления/наведения
+        VersionFrame.LayoutOrder = i;                          -- стабильный порядок карточек
+        local VScale = Instance.new("UIScale", VersionFrame);  -- для анимаций появления/наведения
         VScale.Scale = 1;
         VStroke.Transparency = 0.65; VStroke.Color = Color3.fromRGB(45, 48, 58);
         VCorner.CornerRadius = UDim.new(0, 10);
@@ -1078,14 +1062,16 @@ end));
         redeemBusy = true;
         TextBox.TextEditable = false;
 
-        local ok, reason = pcall(function() return Config.OnRedeem(TextBox.Text); end);
-        -- OnRedeem returns (bool, reason); pcall wraps it
+        local ok, result = pcall(function() return Config.OnRedeem(TextBox.Text); end);
         local success, why;
         if ok then
-            success, why = Config.OnRedeem(TextBox.Text);
+            success, why = result, select(2, Config.OnRedeem(TextBox.Text));
+            -- на случай, если OnRedeem возвращает (bool, reason):
+            local s2, w2 = Config.OnRedeem(TextBox.Text);
+            success, why = s2, w2;
         else
             success, why = false, "Redeem handler error";
-            NeverLose:Log("ERROR", "OnRedeem crashed: " .. tostring(reason));
+            NeverLose:Log("ERROR", "OnRedeem crashed: " .. tostring(result));
         end;
 
         if success then
@@ -1137,7 +1123,7 @@ end));
     end
     NeverLose:CreateInput(NeverLose, MinButton, function() SetMinimized(not LoaderLib.Minimized); end);
 
-    -- ── Drag ──
+    -- ── Drag (главное окно; окно описания следует за ним) ──
     do
         local dragging, dragStart, startPos;
         local Header = Instance.new("TextButton", LoaderFrame);
@@ -1213,4 +1199,59 @@ function NeverLose:Unload()
     pcall(function() NeverLose.ScreenGui:Destroy(); end);
 end;
 
-return NeverLose;
+-- ════════════════════════════════════════════════════
+--  ПРИМЕР ЗАПУСКА (конфиг с 5 продуктами для проверки прокрутки)
+-- ════════════════════════════════════════════════════
+local Window = NeverLose.new({
+    Name = "Neverlose",
+    Content = "Available Products",
+    Profile = LocalPlayer.Name,
+    SaveKey = true,
+    KeyFile = "neverlose_key.txt",
+
+    Links = {
+        { Name = "Discord",  Callback = function() if setclipboard then setclipboard("https://discord.gg/yourinvite") end; NeverLose:Notify("Discord", "Ссылка скопирована", "info"); end },
+        { Name = "Telegram", Callback = function() if setclipboard then setclipboard("https://t.me/yourchannel") end;     NeverLose:Notify("Telegram", "Ссылка скопирована", "info"); end },
+    },
+
+    DefaultVersion = "speed",
+
+    Versions = {
+        { Idx = "speed", Name = "+1 Speed Keyboard Escape", Content = "Буст скорости", Icon = "gauge-high", Version = "H3", Date = "22.07.2026", Dot = Color3.fromRGB(70, 200, 120),
+          Changelog = "• Авто-старт\n• Фикс краша на мобилках\n• Оптимизация",
+          Info = { { Name = "Status", Value = "Working" }, { Name = "Users", Value = "12 430" } } },
+
+        { Idx = "farm", Name = "Auto Farm Pro", Content = "Автофарм ресурсов", Icon = "wheat-awn", Version = "v2", Date = "20.07.2026",
+          Changelog = "• Новый маршрут\n• Anti-AFK",
+          Info = { { Name = "Status", Value = "Working" }, { Name = "Users", Value = "8 902" } } },
+
+        { Idx = "esp", Name = "ESP / Visuals", Content = "Обводки, имена, дистанция", Icon = "eye", Version = "v5", Date = "18.07.2026",
+          Changelog = "• Box ESP\n• Tracers\n• Name tags",
+          Info = { { Name = "Status", Value = "Working" } } },
+
+        { Idx = "aim", Name = "Aim Assist", Content = "Помощь в наведении", Icon = "crosshairs", Version = "v1", Date = "15.07.2026", Locked = true,
+          Changelog = "• Smoothing\n• FOV circle",
+          Info = { { Name = "Status", Value = "Premium" } } },
+
+        { Idx = "misc", Name = "Misc Tools", Content = "Мелкие утилиты", Icon = "screwdriver-wrench", Version = "v3", Date = "10.07.2026",
+          Changelog = "• Fly\n• Noclip\n• Infinite jump",
+          Info = { { Name = "Status", Value = "Working" } } },
+    },
+
+    OnGetKey = function()
+        if setclipboard then setclipboard("https://yoursite.com/getkey") end
+    end,
+
+    OnRedeem = function(key)
+        key = tostring(key):gsub("%s", "");
+        if key == "TEST" or key == "FREE-KEY-1234" then
+            return true;
+        end
+        return false, "Неверный ключ";
+    end,
+});
+
+local chosen = Window:Await();
+NeverLose:Log("INFO", "Пользователь запустил продукт: " .. tostring(chosen));
+-- дальше грузи нужный продукт по chosen (Idx), например:
+-- if chosen == "speed" then loadstring(...)() end
